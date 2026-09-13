@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SRS - Blood Bank Management System (Team T9)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Marked.js for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Mermaid.js for UML diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { font-size: 12pt; color: #000; }
+      .page-break { page-break-before: always; }
+    }
+    .prose pre { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem; }
+    .prose table { width: 100%; border-collapse: collapse; margin-top: 1rem; margin-bottom: 1rem; }
+    .prose th, .prose td { border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; font-size: 0.875rem; text-align: left; }
+    .prose th { background-color: #f1f5f9; font-weight: 600; }
+    .prose tr:nth-child(even) { background-color: #f8fafc; }
+    .mermaid { display: flex; justify-content: center; margin: 1.5rem 0; background: #fafafa; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+
+  <!-- Top Action Bar (Print / Export) -->
+  <header class="no-print sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-3 shadow-sm flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 bg-red-600 text-white rounded-lg flex items-center justify-center font-bold text-lg shadow-sm">
+        🩸
+      </div>
+      <div>
+        <h1 class="font-bold text-gray-800 text-base">Blood Bank Management System (BBMS)</h1>
+        <p class="text-xs text-gray-500">PES University &bull; Dept of CSE &bull; Team T9 &bull; Uttam (PES1UG24CS697), Abhinav K (PES1UG24CS701), Akshay Arcot (PES1UG24CS705), Navaneeth Tanuboddi (PES1UG24CS709)</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-3">
+      <button onclick="window.print()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded shadow transition flex items-center space-x-2">
+        <span>🖨️ Print / Save as PDF</span>
+      </button>
+      <a href="../" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded border border-gray-300 transition">
+        🚀 Launch Web App
+      </a>
+    </div>
+  </header>
+
+  <!-- Document Container -->
+  <main class="max-w-4xl mx-auto my-8 bg-white p-10 md:p-14 shadow-lg rounded-xl border border-gray-200">
+    <div id="content" class="prose max-w-none text-gray-800 leading-relaxed">
+      <!-- Dynamic Content Loaded from Markdown -->
+      <div class="text-center py-12 text-gray-400">Loading SRS Document...</div>
+    </div>
+  </main>
+
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+
+    async function loadSRS() {
+      try {
+        const response = await fetch('./SRS_Blood_Bank_Management_System.md');
+        const markdown = await response.text();
+        
+        // Custom renderer for mermaid code blocks
+        const renderer = new marked.Renderer();
+        const defaultCodeRenderer = renderer.code.bind(renderer);
+        renderer.code = function(code, language) {
+          if (language === 'mermaid') {
+            return `<div class="mermaid">${code}</div>`;
+          }
+          return defaultCodeRenderer(code, language);
+        };
+
+        marked.setOptions({ renderer });
+        document.getElementById('content').innerHTML = marked.parse(markdown);
+        await mermaid.run();
+      } catch (err) {
+        console.error('Failed to load markdown', err);
+        document.getElementById('content').innerHTML = `
+          <div class="p-6 bg-red-50 text-red-700 rounded-lg">
+            <h2 class="font-bold text-lg">Error loading markdown file</h2>
+            <p>Please ensure you are viewing this via an HTTP server or the Node.js backend app.</p>
+          </div>
+        `;
+      }
+    }
+
+    loadSRS();
+  </script>
+</body>
+</html>
