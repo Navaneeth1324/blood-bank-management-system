@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blood Bank Management System | PES University Team T9</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .gradient-header {
+      background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+    }
+    .status-badge {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .badge-available { background-color: #dcfce7; color: #15803d; }
+    .badge-testing { background-color: #fef9c3; color: #a16207; }
+    .badge-reserved { background-color: #e0e7ff; color: #4338ca; }
+    .badge-expired { background-color: #fee2e2; color: #b91c1c; }
+    .badge-dispatched { background-color: #f3f4f6; color: #4b5563; }
+    .badge-discarded { background-color: #fce7f3; color: #be185d; }
+    
+    .urgency-critical { background-color: #fee2e2; color: #991b1b; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .urgency-urgent { background-color: #ffedd5; color: #c2410c; }
+    .urgency-routine { background-color: #f1f5f9; color: #475569; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+
+  <!-- Top Academic Navigation Bar -->
+  <header class="gradient-header text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('public')">
+          <div class="w-10 h-10 bg-white text-red-700 rounded-xl flex items-center justify-center font-bold text-xl shadow">
+            🩸
+          </div>
+          <div>
+            <h1 class="font-black text-lg tracking-tight">BloodBank<span class="text-red-200">OS</span></h1>
+            <p class="text-xs text-red-200">PES University &bull; Team T9 &bull; Sl. No. 9</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="hidden md:flex space-x-1">
+          <button onclick="switchTab('public')" id="tab-btn-public" class="px-3 py-2 rounded-lg text-sm font-medium bg-red-800 text-white transition">
+            <i class="fa-solid fa-house mr-1.5"></i> Public Portal
+          </button>
+          <button onclick="switchTab('staff')" id="tab-btn-staff" class="px-3 py-2 rounded-lg text-sm font-medium text-red-100 hover:bg-red-800 hover:text-white transition">
+            <i class="fa-solid fa-microscope mr-1.5"></i> Staff / Lab Console
+          </button>
+          <button onclick="switchTab('hospital')" id="tab-btn-hospital" class="px-3 py-2 rounded-lg text-sm font-medium text-red-100 hover:bg-red-800 hover:text-white transition">
+            <i class="fa-solid fa-hospital mr-1.5"></i> Hospital Requisitions
+          </button>
+          <button onclick="switchTab('donor')" id="tab-btn-donor" class="px-3 py-2 rounded-lg text-sm font-medium text-red-100 hover:bg-red-800 hover:text-white transition">
+            <i class="fa-solid fa-id-card mr-1.5"></i> Donor Portal
+          </button>
+          <a href="/docs/SRS_Report.html" target="_blank" class="px-3 py-2 rounded-lg text-sm font-medium text-yellow-300 hover:bg-red-800 transition flex items-center">
+            <i class="fa-solid fa-file-lines mr-1.5"></i> IEEE SRS Document
+          </a>
+        </nav>
+
+        <!-- User Role Profile / Fast Switcher -->
+        <div class="flex items-center space-x-2">
+          <div id="user-display" class="text-xs text-right hidden sm:block">
+            <span class="font-semibold block" id="user-name">Dr. Rajesh (Admin)</span>
+            <span class="text-red-200 uppercase tracking-wider text-[10px]" id="user-role">ADMIN</span>
+          </div>
+          <button onclick="openRoleSwitcherModal()" class="bg-red-800 hover:bg-red-900 border border-red-400/40 text-xs px-3 py-2 rounded-lg font-semibold flex items-center space-x-1.5 shadow-sm transition">
+            <i class="fa-solid fa-user-gear"></i>
+            <span>Switch Role</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Banner (Alerts) -->
+  <div id="alert-banner" class="hidden bg-amber-50 border-b border-amber-200 px-4 py-2 text-amber-800 text-xs text-center font-medium">
+    <!-- Dynamic low stock or urgent shortage message -->
+  </div>
+
+  <!-- Main View Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: PUBLIC / GUEST EMERGENCY PORTAL -->
+    <!-- ========================================================================= -->
+    <div id="view-public" class="space-y-8">
+      <!-- Hero & Quick Search -->
+      <section class="bg-gradient-to-r from-red-600 to-rose-700 rounded-2xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10 max-w-2xl">
+          <span class="inline-block bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider mb-3">
+            Life-Saving Logistics Engine
+          </span>
+          <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
+            Give Blood. Save Lives.<br/>Find Emergency Blood Instantly.
+          </h2>
+          <p class="text-red-100 text-sm sm:text-base mb-6 leading-relaxed">
+            Centralized blood donation registry and clinical cross-match inventory serving hospitals and voluntary donors across Bengaluru.
+          </p>
+
+          <!-- Search Widget -->
+          <div class="bg-white p-3 sm:p-4 rounded-xl shadow-lg flex flex-col sm:flex-row gap-3 text-gray-800">
+            <div class="flex-1">
+              <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Blood Group</label>
+              <select id="search-blood-group" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-red-500">
+                <option value="ALL">All Blood Groups</option>
+                <option value="O-">O- (Universal Red Cell Donor)</option>
+                <option value="O+">O+</option>
+                <option value="A-">A-</option>
+                <option value="A+">A+</option>
+                <option value="B-">B-</option>
+                <option value="B+">B+</option>
+                <option value="AB-">AB-</option>
+                <option value="AB+">AB+ (Universal Recipient)</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Component</label>
+              <select id="search-component" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-red-500">
+                <option value="ALL">All Components</option>
+                <option value="PRBC">Packed Red Cells (PRBC)</option>
+                <option value="WHOLE_BLOOD">Whole Blood</option>
+                <option value="PLATELETS">Platelets</option>
+                <option value="FFP">Fresh Frozen Plasma (FFP)</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button onclick="performPublicSearch()" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg shadow transition flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Check Availability</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Search Results Area -->
+      <div id="search-results-box" class="hidden bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <h3 class="font-bold text-gray-800 text-base mb-4 flex items-center justify-between">
+          <span>Search Results</span>
+          <span id="search-count-badge" class="text-xs bg-red-100 text-red-700 font-semibold px-2.5 py-1 rounded-full">0 units found</span>
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-xs uppercase text-gray-500 font-semibold">
+              <tr>
+                <th class="p-3">Barcode</th>
+                <th class="p-3">Blood Group</th>
+                <th class="p-3">Component</th>
+                <th class="p-3">Volume</th>
+                <th class="p-3">Expiry Date</th>
+                <th class="p-3">Storage Rack</th>
+                <th class="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="search-results-table" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Counters -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center space-x-4">
+          <div class="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-droplet"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 font-medium">Available Units</p>
+            <p id="kpi-available-units" class="text-2xl font-black text-gray-800">--</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center space-x-4">
+          <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-truck-medical"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 font-medium">Pending Requests</p>
+            <p id="kpi-pending-requests" class="text-2xl font-black text-gray-800">--</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center space-x-4">
+          <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 font-medium">Registered Donors</p>
+            <p id="kpi-total-donors" class="text-2xl font-black text-gray-800">--</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center space-x-4">
+          <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-tent"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 font-medium">Upcoming Drives</p>
+            <p id="kpi-upcoming-camps" class="text-2xl font-black text-gray-800">--</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Stock Matrix Overview -->
+      <section class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-bold text-gray-900 text-base">Real-Time Blood Availability Grid</h3>
+            <p class="text-xs text-gray-500">Live units available across 8 blood groups and 4 components</p>
+          </div>
+          <button onclick="refreshData()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-300 font-semibold transition">
+            <i class="fa-solid fa-rotate mr-1"></i> Refresh
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-center text-sm border-collapse">
+            <thead>
+              <tr class="bg-gray-50 text-gray-600 text-xs font-semibold border-b">
+                <th class="p-3 text-left">Blood Group</th>
+                <th class="p-3">Packed Red Cells (PRBC)</th>
+                <th class="p-3">Whole Blood</th>
+                <th class="p-3">Platelets</th>
+                <th class="p-3">Fresh Frozen Plasma (FFP)</th>
+                <th class="p-3 font-bold text-gray-900 bg-gray-100">Total Available</th>
+              </tr>
+            </thead>
+            <tbody id="public-matrix-body" class="divide-y divide-gray-200 font-medium">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Blood Donation Camps & Drives -->
+      <section class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-bold text-gray-900 text-base">Upcoming Blood Donation Camps</h3>
+            <p class="text-xs text-gray-500">Pre-register to donate blood at community drives near you</p>
+          </div>
+        </div>
+        <div id="camps-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: STAFF & LAB TECHNICIAN CONSOLE -->
+    <!-- ========================================================================= -->
+    <div id="view-staff" class="hidden space-y-8">
+      <!-- Action Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+        <div>
+          <h2 class="text-xl font-extrabold text-gray-900">Lab & Inventory Operations Console</h2>
+          <p class="text-xs text-gray-500">Intake blood bags, record serology TTI tests, and approve hospital requisitions</p>
+        </div>
+        <div class="flex space-x-3">
+          <button onclick="openIntakeModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow transition flex items-center space-x-2">
+            <i class="fa-solid fa-plus"></i>
+            <span>Intake New Blood Bag</span>
+          </button>
+          <button onclick="openScheduleCampModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold rounded-lg shadow transition flex items-center space-x-2">
+            <i class="fa-solid fa-calendar-plus"></i>
+            <span>Schedule Camp</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Testing Queue (Quarantined Units Awaiting Test Results) -->
+      <section class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-2">
+            <span class="w-3 h-3 rounded-full bg-amber-500 animate-ping"></span>
+            <h3 class="font-bold text-gray-900 text-base">Serology Lab Testing Queue (Quarantined Units)</h3>
+          </div>
+          <span id="testing-queue-badge" class="text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full">0 units pending</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-4">All blood units undergo mandatory screening for HIV 1&2, Hepatitis B, Hepatitis C, Syphilis, and Malaria before release.</p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-xs uppercase text-gray-500 font-semibold">
+              <tr>
+                <th class="p-3">Bag Barcode</th>
+                <th class="p-3">Blood Group</th>
+                <th class="p-3">Component</th>
+                <th class="p-3">Collection Date</th>
+                <th class="p-3">Storage Location</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="testing-table-body" class="divide-y divide-gray-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Hospital Requisition Approval Queue -->
+      <section class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-bold text-gray-900 text-base">Pending Hospital Blood Requisitions</h3>
+            <p class="text-xs text-gray-500">Automated clinical cross-matching and First-Expired-First-Out (FEFO) allocation</p>
+          </div>
+          <span id="pending-req-badge" class="text-xs bg-red-100 text-red-700 font-semibold px-2.5 py-1 rounded-full">0 Pending</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-xs uppercase text-gray-500 font-semibold">
+              <tr>
+                <th class="p-3">Req ID</th>
+                <th class="p-3">Hospital</th>
+                <th class="p-3">Patient</th>
+                <th class="p-3">Group</th>
+                <th class="p-3">Component</th>
+                <th class="p-3">Units</th>
+                <th class="p-3">Urgency</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="staff-requisitions-table" class="divide-y divide-gray-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- All Inventory Units Ledger -->
+      <section class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-bold text-gray-900 text-base">Complete Blood Inventory Ledger</h3>
+            <p class="text-xs text-gray-500">Full audit trail of all blood bags with status tracking</p>
+          </div>
+        </div>
+        <div class="overflow-x-auto max-h-96">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-50 sticky top-0 text-gray-500 uppercase font-semibold">
+              <tr>
+                <th class="p-2.5">Barcode</th>
+                <th class="p-2.5">Group</th>
+                <th class="p-2.5">Component</th>
+                <th class="p-2.5">Volume</th>
+                <th class="p-2.5">Collected</th>
+                <th class="p-2.5">Expiry</th>
+                <th class="p-2.5">Storage</th>
+                <th class="p-2.5">Status</th>
+              </tr>
+            </thead>
+            <tbody id="all-units-table-body" class="divide-y divide-gray-100 font-mono">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: HOSPITAL REQUISITION PORTAL -->
+    <!-- ========================================================================= -->
+    <div id="view-hospital" class="hidden space-y-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Requisition Submission Form -->
+        <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h2 class="font-extrabold text-gray-900 text-lg mb-1 flex items-center space-x-2">
+            <i class="fa-solid fa-hospital-user text-red-600"></i>
+            <span>Submit Blood Requisition</span>
+          </h2>
+          <p class="text-xs text-gray-500 mb-5">Submit emergency or routine blood requests for admitted patients.</p>
+
+          <form id="requisition-form" onsubmit="submitRequisition(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Requesting Hospital</label>
+              <input type="text" id="req-hospital-name" required value="Manipal Hospital Bengaluru" class="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Patient Name</label>
+                <input type="text" id="req-patient-name" required placeholder="e.g. S. Narayanan" class="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium focus:ring-2 focus:ring-red-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Patient File / IP No.</label>
+                <input type="text" id="req-patient-id" required placeholder="e.g. MAN-9821" class="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium focus:ring-2 focus:ring-red-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Blood Group</label>
+                <select id="req-blood-group" required class="w-full border border-gray-300 rounded-lg p-2 text-xs font-bold focus:ring-2 focus:ring-red-500">
+                  <option value="O-">O- (Universal Red Cell)</option>
+                  <option value="O+">O+</option>
+                  <option value="A-">A-</option>
+                  <option value="A+" selected>A+</option>
+                  <option value="B-">B-</option>
+                  <option value="B+">B+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="AB+">AB+</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Component</label>
+                <select id="req-component" required class="w-full border border-gray-300 rounded-lg p-2 text-xs font-semibold focus:ring-2 focus:ring-red-500">
+                  <option value="PRBC" selected>Packed Red Cells (PRBC)</option>
+                  <option value="WHOLE_BLOOD">Whole Blood</option>
+                  <option value="PLATELETS">Platelets</option>
+                  <option value="FFP">Fresh Frozen Plasma (FFP)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Units Required</label>
+                <input type="number" id="req-units" min="1" max="10" value="1" required class="w-full border border-gray-300 rounded-lg p-2 text-xs font-bold focus:ring-2 focus:ring-red-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Urgency Level</label>
+                <select id="req-urgency" required class="w-full border border-gray-300 rounded-lg p-2 text-xs font-bold focus:ring-2 focus:ring-red-500">
+                  <option value="ROUTINE">Routine (Elective Surgery)</option>
+                  <option value="URGENT">Urgent (Within 4 Hours)</option>
+                  <option value="CRITICAL" selected>Critical (Stat Emergency)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Attending Physician / Doctor</label>
+              <input type="text" id="req-doctor-name" required value="Dr. Anand Rao (Chief Surgeon)" class="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <button type="submit" class="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow transition flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>Transmit Requisition</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Requisition Tracking Feed -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-gray-900 text-base">Requisition Tracking & Handover Status</h3>
+              <p class="text-xs text-gray-500">Live order state machine tracking from submission to fulfillment</p>
+            </div>
+            <button onclick="refreshData()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-300 font-semibold transition">
+              <i class="fa-solid fa-rotate mr-1"></i> Refresh
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-gray-50 text-xs uppercase text-gray-500 font-semibold">
+                <tr>
+                  <th class="p-3">Req ID</th>
+                  <th class="p-3">Patient</th>
+                  <th class="p-3">Group</th>
+                  <th class="p-3">Units</th>
+                  <th class="p-3">Urgency</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Submitted</th>
+                </tr>
+              </thead>
+              <tbody id="hospital-req-table-body" class="divide-y divide-gray-100">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 4: DONOR PORTAL & DIGITAL DONOR CARD -->
+    <!-- ========================================================================= -->
+    <div id="view-donor" class="hidden space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Digital Donor Card -->
+        <div class="md:col-span-1 space-y-4">
+          <div class="bg-gradient-to-br from-red-700 via-red-800 to-gray-900 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+            <div class="flex justify-between items-start mb-6">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-red-200">Digital Donor Pass</span>
+                <h4 class="text-lg font-black tracking-tight mt-0.5" id="donor-card-name">Rohit Sharma</h4>
+                <p class="text-xs text-red-200">PESU Voluntary Blood Network</p>
+              </div>
+              <div class="w-12 h-12 bg-white text-red-700 rounded-full flex items-center justify-center font-black text-xl shadow">
+                <span id="donor-card-group">O-</span>
+              </div>
+            </div>
+
+            <div class="space-y-2 text-xs border-t border-white/20 pt-4 mb-4">
+              <div class="flex justify-between">
+                <span class="text-red-200">Donor ID:</span>
+                <span class="font-mono font-bold" id="donor-card-id">DON-001</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-red-200">Total Donations:</span>
+                <span class="font-bold" id="donor-card-total">1 donation</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-red-200">Weight / Hb:</span>
+                <span class="font-bold" id="donor-card-vitals">72.5 kg &bull; 14.8 g/dL</span>
+              </div>
+            </div>
+
+            <!-- Cooldown Meter -->
+            <div id="donor-eligibility-box" class="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center border border-white/20">
+              <span class="text-[11px] font-bold uppercase tracking-wider block text-emerald-300">
+                <i class="fa-solid fa-circle-check mr-1"></i> Eligible to Donate Today
+              </span>
+              <p class="text-[10px] text-red-100 mt-1">90-day biological cooldown requirement satisfied</p>
+            </div>
+          </div>
+
+          <!-- Self-Screening Eligibility Check Form -->
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <h4 class="font-bold text-gray-900 text-sm mb-2 flex items-center space-x-1.5">
+              <i class="fa-solid fa-notes-medical text-red-600"></i>
+              <span>Donor Screening & Profile Registration</span>
+            </h4>
+            <p class="text-xs text-gray-500 mb-4">Register as a voluntary donor to be contacted during emergency shortages.</p>
+
+            <form onsubmit="registerNewDonor(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Full Name</label>
+                <input type="text" id="donor-reg-name" required placeholder="e.g. Navaneeth Tanuboddi" class="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Phone</label>
+                  <input type="tel" id="donor-reg-phone" required placeholder="+91-9876543210" class="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Blood Group</label>
+                  <select id="donor-reg-group" required class="w-full border border-gray-300 rounded-lg p-2 text-xs font-bold">
+                    <option value="O-">O- (Universal)</option>
+                    <option value="O+">O+</option>
+                    <option value="A-">A-</option>
+                    <option value="A+">A+</option>
+                    <option value="B-">B-</option>
+                    <option value="B+">B+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="AB+">AB+</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Weight (kg &ge; 45)</label>
+                  <input type="number" step="0.5" id="donor-reg-weight" min="40" max="150" value="65" required class="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Hb (g/dL &ge; 12.5)</label>
+                  <input type="number" step="0.1" id="donor-reg-hb" min="10" max="18" value="14.2" required class="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Date of Birth</label>
+                  <input type="date" id="donor-reg-dob" value="2002-04-12" required class="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Last Donated Date</label>
+                  <input type="date" id="donor-reg-lastdate" class="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium">
+                </div>
+              </div>
+              <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow transition">
+                Register as Voluntary Donor
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Registered Voluntary Donors List & Emergency Contact Directory -->
+        <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-gray-900 text-base">Voluntary Donor Network Directory</h3>
+              <p class="text-xs text-gray-500">Live eligibility status calculated with real-time 90-day cooldown enforcement</p>
+            </div>
+            <button onclick="filterShortageBroadcast()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center space-x-1.5">
+              <i class="fa-solid fa-bullhorn"></i>
+              <span>Emergency Shortage Broadcast</span>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-gray-50 text-xs uppercase text-gray-500 font-semibold">
+                <tr>
+                  <th class="p-3">Donor Name</th>
+                  <th class="p-3">Group</th>
+                  <th class="p-3">Phone</th>
+                  <th class="p-3">Weight / Hb</th>
+                  <th class="p-3">Last Donated</th>
+                  <th class="p-3">Eligibility Status</th>
+                </tr>
+              </thead>
+              <tbody id="donors-table-body" class="divide-y divide-gray-100">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ROLE SWITCHER -->
+  <!-- ========================================================================= -->
+  <div id="modal-role-switcher" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-extrabold text-gray-900 text-base flex items-center space-x-2">
+          <i class="fa-solid fa-user-shield text-red-600"></i>
+          <span>Academic Evaluation Role Switcher</span>
+        </h3>
+        <button onclick="closeModal('modal-role-switcher')" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <p class="text-xs text-gray-500 leading-relaxed">
+        Select a role below to simulate different user classes defined in the IEEE 830 SRS document:
+      </p>
+
+      <div class="space-y-2">
+        <button onclick="selectDemoRole('ADMIN')" class="w-full text-left p-3 rounded-xl border border-gray-200 hover:border-red-500 hover:bg-red-50/50 transition flex items-center justify-between">
+          <div>
+            <span class="font-bold text-sm text-gray-900 block">🛡️ System Administrator</span>
+            <span class="text-xs text-gray-500">admin@bloodbank.org &bull; Full oversight & analytics</span>
+          </div>
+          <span class="text-xs bg-red-100 text-red-700 font-bold px-2 py-1 rounded">ADMIN</span>
+        </button>
+
+        <button onclick="selectDemoRole('STAFF')" class="w-full text-left p-3 rounded-xl border border-gray-200 hover:border-red-500 hover:bg-red-50/50 transition flex items-center justify-between">
+          <div>
+            <span class="font-bold text-sm text-gray-900 block">🔬 Blood Bank Staff / Lab Tech</span>
+            <span class="text-xs text-gray-500">staff@bloodbank.org &bull; Serology tests & bag intake</span>
+          </div>
+          <span class="text-xs bg-amber-100 text-amber-700 font-bold px-2 py-1 rounded">STAFF</span>
+        </button>
+
+        <button onclick="selectDemoRole('HOSPITAL')" class="w-full text-left p-3 rounded-xl border border-gray-200 hover:border-red-500 hover:bg-red-50/50 transition flex items-center justify-between">
+          <div>
+            <span class="font-bold text-sm text-gray-900 block">🏥 Hospital Representative</span>
+            <span class="text-xs text-gray-500">manipal@hospital.org &bull; Requisitions & tracking</span>
+          </div>
+          <span class="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded">HOSPITAL</span>
+        </button>
+
+        <button onclick="selectDemoRole('DONOR')" class="w-full text-left p-3 rounded-xl border border-gray-200 hover:border-red-500 hover:bg-red-50/50 transition flex items-center justify-between">
+          <div>
+            <span class="font-bold text-sm text-gray-900 block">❤️ Voluntary Donor</span>
+            <span class="text-xs text-gray-500">rohit.sharma@gmail.com &bull; Donor card & cooldown</span>
+          </div>
+          <span class="text-xs bg-emerald-100 text-emerald-700 font-bold px-2 py-1 rounded">DONOR</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: SEROLOGY LAB TEST VERIFICATION -->
+  <!-- ========================================================================= -->
+  <div id="modal-test-verification" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="font-extrabold text-gray-900 text-base">Record Serology / TTI Test Results</h3>
+          <p class="text-xs text-gray-500" id="test-modal-barcode-display">Blood Bag: BLD-2026-018</p>
+        </div>
+        <button onclick="closeModal('modal-test-verification')" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="modal-test-unit-id">
+
+      <div class="space-y-3 text-xs">
+        <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg">
+          <span class="font-semibold text-gray-700">1. HIV 1 & 2 Antibody Test:</span>
+          <select id="test-hiv" class="border border-gray-300 rounded p-1 font-bold">
+            <option value="NEGATIVE" selected>NEGATIVE (Pass)</option>
+            <option value="POSITIVE">POSITIVE (Reactive)</option>
+          </select>
+        </div>
+
+        <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg">
+          <span class="font-semibold text-gray-700">2. Hepatitis B (HBsAg):</span>
+          <select id="test-hbv" class="border border-gray-300 rounded p-1 font-bold">
+            <option value="NEGATIVE" selected>NEGATIVE (Pass)</option>
+            <option value="POSITIVE">POSITIVE (Reactive)</option>
+          </select>
+        </div>
+
+        <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg">
+          <span class="font-semibold text-gray-700">3. Hepatitis C (Anti-HCV):</span>
+          <select id="test-hcv" class="border border-gray-300 rounded p-1 font-bold">
+            <option value="NEGATIVE" selected>NEGATIVE (Pass)</option>
+            <option value="POSITIVE">POSITIVE (Reactive)</option>
+          </select>
+        </div>
+
+        <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg">
+          <span class="font-semibold text-gray-700">4. Syphilis (VDRL / RPR):</span>
+          <select id="test-syphilis" class="border border-gray-300 rounded p-1 font-bold">
+            <option value="NEGATIVE" selected>NEGATIVE (Pass)</option>
+            <option value="POSITIVE">POSITIVE (Reactive)</option>
+          </select>
+        </div>
+
+        <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg">
+          <span class="font-semibold text-gray-700">5. Malaria Parasite (Smear/Antigen):</span>
+          <select id="test-malaria" class="border border-gray-300 rounded p-1 font-bold">
+            <option value="NEGATIVE" selected>NEGATIVE (Pass)</option>
+            <option value="POSITIVE">POSITIVE (Reactive)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Certifying Technician Name:</label>
+          <input type="text" id="test-technician-name" value="Pooja Hegde (Senior Lab Technician)" class="w-full border border-gray-300 rounded p-2 text-xs">
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-3 border-t">
+        <button onclick="submitTestResults(false)" class="px-4 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-bold rounded-lg transition">
+          Simulate Reactive (Discard Bag)
+        </button>
+        <button onclick="submitTestResults(true)" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow transition">
+          Certify All Negative (Release to Stock)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: BLOOD INTAKE -->
+  <!-- ========================================================================= -->
+  <div id="modal-intake" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-extrabold text-gray-900 text-base">New Blood Bag Intake</h3>
+        <button onclick="closeModal('modal-intake')" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="submitIntake(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Bag Barcode ID</label>
+          <input type="text" id="intake-barcode" required class="w-full border border-gray-300 rounded p-2 font-mono font-bold">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Blood Group</label>
+            <select id="intake-group" required class="w-full border border-gray-300 rounded p-2 font-bold">
+              <option value="O-">O-</option>
+              <option value="O+">O+</option>
+              <option value="A-">A-</option>
+              <option value="A+">A+</option>
+              <option value="B-">B-</option>
+              <option value="B+" selected>B+</option>
+              <option value="AB-">AB-</option>
+              <option value="AB+">AB+</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Component</label>
+            <select id="intake-component" required class="w-full border border-gray-300 rounded p-2">
+              <option value="PRBC" selected>Packed Red Cells (42d)</option>
+              <option value="WHOLE_BLOOD">Whole Blood (35d)</option>
+              <option value="PLATELETS">Platelets (5d)</option>
+              <option value="FFP">Fresh Frozen Plasma (365d)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Volume (mL)</label>
+            <input type="number" id="intake-volume" value="350" required class="w-full border border-gray-300 rounded p-2 font-bold">
+          </div>
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Storage Rack</label>
+            <input type="text" id="intake-rack" value="RACK-C1-03" required class="w-full border border-gray-300 rounded p-2">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Collection Date</label>
+          <input type="date" id="intake-date" required class="w-full border border-gray-300 rounded p-2">
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow transition">
+            Register Bag into Quarantine
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: REQUISITION CROSS-MATCH & APPROVAL -->
+  <!-- ========================================================================= -->
+  <div id="modal-req-match" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="font-extrabold text-gray-900 text-base">Clinical Cross-Match & Allocation</h3>
+          <p class="text-xs text-gray-500" id="match-modal-req-title">Requisition #MAN-2026</p>
+        </div>
+        <button onclick="closeModal('modal-req-match')" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="match-modal-req-id">
+
+      <div class="space-y-3 text-xs">
+        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+          <span class="font-bold text-blue-900 block mb-1">Clinical Compatibility Rules Applied:</span>
+          <p id="match-modal-compat-info" class="text-blue-800">Compatible Groups: O-, O+</p>
+        </div>
+
+        <div class="space-y-2">
+          <span class="font-bold text-gray-800 block">Recommended FEFO Units in Inventory:</span>
+          <div id="match-modal-units-list" class="space-y-1.5 max-h-48 overflow-y-auto">
+            <!-- Dynamically populated candidate bags -->
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-3 border-t">
+        <button onclick="closeModal('modal-req-match')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg">
+          Cancel
+        </button>
+        <button id="btn-confirm-approval" onclick="confirmRequisitionApproval()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow transition">
+          Approve & Reserve Bags
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 py-6 mt-12 text-center text-xs text-gray-500">
+    <div class="max-w-7xl mx-auto px-4">
+      <p class="font-semibold text-gray-700">Department of Computer Science & Engineering &bull; PES University</p>
+      <p class="mt-1">Software Engineering Mini-Project &bull; Team T9 (Sl. No. 9) &bull; Blood Bank Management System</p>
+      <p class="mt-1 text-[11px] text-gray-400">Team Members: Uttam (PES1UG24CS697), Abhinav K (PES1UG24CS701), Akshay Arcot (PES1UG24CS705), Navaneeth Tanuboddi (PES1UG24CS709)</p>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
