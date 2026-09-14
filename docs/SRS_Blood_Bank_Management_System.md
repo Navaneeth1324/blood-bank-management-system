@@ -1,850 +1,309 @@
-# SOFTWARE REQUIREMENTS SPECIFICATION (SRS)
-## Blood Bank Management System (BBMS)
+# Software Requirements Specification (SRS)
+
+**Project:** Blood Bank Management System (BBMS) — Web Application with Role-Based Access Control, Inventory Tracking, and Hospital Blood Request Management (Node.js / Express / SQLite / Tailwind CSS)  
+**Version:** 1.0  
+**Authors:** Uttam (PES1UG24CS697), Abhinav K (PES1UG24CS701), Akshay Arcot (PES1UG24CS705), Navaneeth Tanuboddi (PES1UG24CS709) — Team T9  
+**Date:** 14-09-2026  
+**Status:** Draft for review  
 
 ---
 
-### Project & Academic Information
-- **Course**: Software Engineering Mini-Project
-- **Institution**: Department of Computer Science & Engineering, PES University
-- **Team Number**: **T9**
-- **Project Allocation Sl. No.**: **9**
-- **Project Title**: Blood Bank Management System
-- **Document Version**: 1.0.0
-- **Status**: Formal Academic Baseline
-- **Date**: September 2026
+## Revision history
 
-#### Team Members & Work Breakdown Structure (4-Way Module Split):
-| Student Name & Role | SRN & GitHub Profile | Assigned Project Module | Primary Responsibilities & Artifacts |
+| Version | Date | Author | Change summary | Approval |
+| :--- | :--- | :--- | :--- | :--- |
+| 0.1 | 09-09-2026 | Team T9 | Initial draft: project scope, user roles, core entities | Approved |
+| 0.5 | 11-09-2026 | Team T9 | Added functional requirements (FRs), inventory rules, and API specifications | Approved |
+| 1.0 | 14-09-2026 | Team T9 | Complete SRS with security requirements, UML use-case diagrams, test cases, and RTM | Pending |
+
+## Approvals
+
+| Role | Name | Signature / Email | Date |
 | :--- | :--- | :--- | :--- |
-| **Uttam**<br/>(Team Member 1) | `PES1UG24CS697`<br/>([@Uttam1916](https://github.com/Uttam1916)) | **Module 1: Architecture, Security & RBAC** | `src/config/database.js`, `src/services/authService.js`, `src/routes/authRoutes.js`<br/>• Relational schema design & SQLite migrations<br/>• PBKDF2 password hashing & token authentication<br/>• SRS System Architecture & DFD Levels 0 & 1 |
-| **Abhinav K**<br/>(Team Member 2) | `PES1UG24CS701`<br/>([@Abhinavk0006](https://github.com/Abhinavk0006)) | **Module 2: Donor Management & Camps** | `src/services/donorService.js`, `src/services/campService.js`, `src/routes/donorRoutes.js`, `src/routes/campRoutes.js`<br/>• 90-day biological cooldown algorithm & screening checks<br/>• Blood donation camp drive scheduling & RSVP system<br/>• SRS Donor Use Cases & Sequence Diagram |
-| **Akshay Arcot**<br/>(Team Member 3) | `PES1UG24CS705`<br/>([@Akshayarcot](https://github.com/Akshayarcot)) | **Module 3: Inventory & Serology Lab Testing** | `src/services/inventoryService.js`, `src/routes/inventoryRoutes.js`, `src/routes/analyticsRoutes.js`<br/>• Blood bag barcode intake & shelf-life calculation<br/>• 5-point TTI serological screening gate (HIV, HBV, HCV, Syphilis, Malaria)<br/>• SRS Entity-Relationship Diagram & Data Dictionary |
-| **Navaneeth Tanuboddi**<br/>(Team Member 4 — Lead) | `PES1UG24CS709`<br/>([@Navaneeth1324](https://github.com/Navaneeth1324)) | **Module 4: ABO Compatibility Engine & UI** | `src/services/matchingEngine.js`, `src/services/requisitionService.js`, `src/routes/requisitionRoutes.js`, `src/public/*`<br/>• Clinical ABO/Rh cross-matching & FEFO allocation engine<br/>• Hospital emergency requisition lifecycle & UI dashboard<br/>• Automated unit test suite & Cloud deployment |
-
----
-
-## Document Revision History
-| Version | Date | Description | Author |
-| :--- | :--- | :--- | :--- |
-| 1.0.0 | 14-Sep-2026 | Initial IEEE 830 Standard SRS Baseline Release | Team T9 |
-
----
+| Course Coordinator | Prof. Dept of CSE | coordinator.cse@pes.edu | 14-09-2026 |
+| Course Instructor | Faculty Advisor | instructor.cse@pes.edu | 14-09-2026 |
+| Team Lead | Navaneeth Tanuboddi | navaneeth.tanuboddi@gmail.com | 14-09-2026 |
 
 ## Table of Contents
+
 1. [Introduction](#1-introduction)
-   - 1.1 Purpose
-   - 1.2 Document Conventions
-   - 1.3 Intended Audience and Reading Suggestions
-   - 1.4 Product Scope
-   - 1.5 Definitions, Acronyms, and Abbreviations
-   - 1.6 References
-2. [Overall Description](#2-overall-description)
-   - 2.1 Product Perspective
-   - 2.2 Product Functions
-   - 2.3 User Classes and Characteristics
-   - 2.4 Operating Environment
-   - 2.5 Design and Implementation Constraints
-   - 2.6 Assumptions and Dependencies
-3. [External Interface Requirements](#3-external-interface-requirements)
-   - 3.1 User Interfaces
-   - 3.2 Hardware Interfaces
-   - 3.3 Software Interfaces
-   - 3.4 Communications Interfaces
-4. [System Features & Functional Requirements](#4-system-features--functional-requirements)
-   - 4.1 Module 1: Authentication & Role-Based Access Control (RBAC)
-   - 4.2 Module 2: Donor Registration & Medical Screening
-   - 4.3 Module 3: Blood Collection, Testing & Processing
-   - 4.4 Module 4: Inventory Management & Expiry Tracking
-   - 4.5 Module 5: Blood Requisition & Compatibility Matching
-   - 4.6 Module 6: Blood Donation Camps & Drive Management
-   - 4.7 Module 7: Emergency Alert & Broadcast System
-   - 4.8 Module 8: Analytics, Reports & Audit Trails
-5. [Non-Functional Requirements](#5-non-functional-requirements)
-   - 5.1 Performance Requirements
-   - 5.2 Safety Requirements
-   - 5.3 Security Requirements
-   - 5.4 Software Quality Attributes
-6. [System Models & Diagrams](#6-system-models--diagrams)
-   - 6.1 Use Case Diagram
-   - 6.2 Data Flow Diagram (DFD) - Level 0 (Context Diagram)
-   - 6.3 Data Flow Diagram (DFD) - Level 1 (Functional Decomposition)
-   - 6.4 Data Flow Diagram (DFD) - Level 2 (Requisition & Cross-Match Flow)
-   - 6.5 Entity-Relationship (ER) Diagram
-   - 6.6 Sequence Diagram: Donor Registration & Donation
-   - 6.7 Sequence Diagram: Hospital Emergency Requisition
-   - 6.8 State Transition Diagram: Blood Unit Lifecycle
-   - 6.9 System Architecture Diagram
-7. [Database Schema & Data Dictionary](#7-database-schema--data-dictionary)
-8. [ABO / Rh Compatibility Matrix Reference](#8-abo--rh-compatibility-matrix-reference)
+2. [Overall description](#2-overall-description)
+3. [External interface requirements](#3-external-interface-requirements)
+4. [System features (detailed)](#4-system-features-detailed)
+5. [Non-functional requirements (detailed)](#5-non-functional-requirements-detailed)
+6. [Quality attributes & Acceptance tests](#6-quality-attributes--acceptance-tests)
+7. [System models and diagrams (UML use-case)](#7-system-models-and-diagrams)
+8. [Requirements Traceability Matrix (RTM)](#8-requirements-traceability-matrix-rtm)
 
 ---
 
-## 1. Introduction
+# 1. Introduction
 
-### 1.1 Purpose
-The purpose of this Software Requirements Specification (SRS) document is to provide a complete, rigorous, and unambiguous description of the **Blood Bank Management System (BBMS)**. It details both functional and non-functional requirements, external interfaces, system behavior, data design, and architectural constraints. This document serves as the formal baseline for developers, testers, project evaluators, and academic faculty throughout the software engineering lifecycle.
+## 1.1 Purpose
+This document is a Software Requirements Specification (SRS) for the Blood Bank Management System (BBMS), an enterprise-grade, role-based full-stack web application developed using Node.js, Express, SQLite, and Tailwind CSS. It defines the functional and non-functional requirements, external interfaces, security objectives and controls, system architectural models, and the verification criteria against which the delivered system will be assessed. The intended readers are the developer team (Team T9), reviewing faculty instructor, course coordinator, and laboratory evaluators.
 
-### 1.2 Document Conventions
-- This specification strictly follows the **IEEE Std 830-1998 Recommended Practice for Software Requirements Specifications**.
-- Requirement identifiers use the notation `[FR-XX]` for Functional Requirements and `[NFR-XX]` for Non-Functional Requirements.
-- Priority levels are defined using MoSCoW notation: **MUST**, **SHOULD**, **COULD**, or **WONT**.
+## 1.2 Scope
+The Blood Bank Management System encompasses the end-to-end operational lifecycle of voluntary blood donation, blood unit testing and processing, inventory management, hospital blood requisition, and emergency dispatch. The system provides role-based web portals for Donors, Hospital Representatives, Blood Bank Staff, and System Administrators.
 
-### 1.3 Intended Audience and Reading Suggestions
-- **Academic Evaluators / Faculty**: Read Sections 1, 2, 4, and 6 to evaluate engineering rigor, requirement specifications, and diagrammatic modeling.
-- **System Developers**: Focus on Sections 3, 4, 6, and 7 for architectural, REST API, and relational database implementation details.
-- **Quality Assurance & Testers**: Use Sections 4 and 5 to formulate test cases, acceptance criteria, and stress testing suites.
+Key in-scope subsystems include: donor pre-screening health questionnaires, appointment scheduling, digital donor cards, blood unit collection tracking with unique Bag IDs, mandatory serological infection screening (HIV, Hepatitis B/C, Syphilis, Malaria), component separation (PRBC, Platelets, Fresh Frozen Plasma), First-Expired-First-Out (FEFO) stock monitoring, hospital requisition submission with clinical urgency prioritization, automated ABO/Rh cross-matching verification, cold-chain dispatch handover manifests, immutable audit logging, and a public availability dashboard.
 
-### 1.4 Product Scope
-The **Blood Bank Management System (BBMS)** is an end-to-end, web-based healthcare logistics and inventory management solution. It bridges the critical communication gap between voluntary blood donors, blood banks, transfusion centers, and recipient hospitals. 
+Explicitly out of scope: Direct hardware automation of centrifuges/refrigeration IoT sensors, online monetary payment gateways (blood is donated voluntarily without commercial sale), and direct clinical transfusion administration inside operating theaters.
 
-Key capabilities include:
-- Centralized tracking of blood units across 8 blood groups ($A^+, A^-, B^+, B^-, AB^+, AB^-, O^+, O^-$) and 4 blood components (Whole Blood, PRBC, Platelets, FFP).
-- Automated donor eligibility screening (90-day cooldown enforcement, hemoglobin, and serological safety checks).
-- Real-time stock visibility and shelf-life expiration alerts.
-- Intelligent ABO/Rh compatibility cross-matching for emergency requisitions.
-- Blood donation drive scheduling and emergency broadcast dispatch.
+## 1.3 Audience
+Developer Team (Team T9), Software Quality Assurance / Test Engineers, Course Instructors, Academic Evaluators, and Hospital Blood Transfusion Committees.
 
-### 1.5 Definitions, Acronyms, and Abbreviations
-- **BBMS**: Blood Bank Management System.
-- **ABO System**: The classification of human blood based on the inherited properties of red blood cells (A, B, AB, O).
-- **Rh Factor**: Rhesus factor (+ or -) denoting the presence or absence of Rh(D) antigen.
-- **PRBC**: Packed Red Blood Cells (typical shelf-life: 42 days).
-- **FFP**: Fresh Frozen Plasma (typical shelf-life: 1 year stored at $\le -18^\circ\text{C}$).
-- **Platelet Concentrate**: Thrombocyte component (typical shelf-life: 5 days at $20^\circ\text{C}-24^\circ\text{C}$ with continuous agitation).
-- **TTI**: Transfusion-Transmissible Infections (HIV, HBV, HCV, Syphilis, Malaria).
-- **RBAC**: Role-Based Access Control.
-- **FIFO / FEFO**: First In First Out / First Expired First Out allocation strategy.
-- **DFD**: Data Flow Diagram.
-- **ERD**: Entity Relationship Diagram.
+## 1.4 Definitions and Acronyms
 
-### 1.6 References
-1. IEEE Std 830-1998, *IEEE Recommended Practice for Software Requirements Specifications*.
-2. National Blood Transfusion Council (NBTC) & Drugs and Cosmetics Act (India) Guidelines for Blood Banking.
-3. World Health Organization (WHO) Guidelines on Blood Donor Selection and Blood Inventory Management.
-4. Pressman, R. S., *Software Engineering: A Practitioner's Approach*, McGraw-Hill.
+| Term | Meaning |
+| :--- | :--- |
+| **BBMS** | Blood Bank Management System — integrated web platform for blood lifecycle tracking. |
+| **RBAC** | Role-Based Access Control — security architecture restricting access based on user role. |
+| **PRBC** | Packed Red Blood Cells — red cell component used to treat acute hemorrhage and severe anemia. |
+| **FFP** | Fresh Frozen Plasma — plasma frozen within 8 hours, containing labile coagulation factors. |
+| **Platelet Concentrate** | Thrombocytes harvested to prevent bleeding in thrombocytopenic patients (5-day shelf life). |
+| **Serology Screening** | Laboratory diagnostic assays for transfusion-transmissible infections (TTIs). |
+| **Quarantine** | Holding status isolating blood units pending test results or discarding non-conforming units. |
+| **Cross-Matching** | Compatibility testing between donor erythrocytes and recipient serum prior to issue. |
+| **FEFO** | First-Expired-First-Out — inventory distribution strategy prioritizing closest expiration date. |
+| **RTM** | Requirements Traceability Matrix — mapping requirements to modules, test cases, and status. |
 
 ---
 
-## 2. Overall Description
+# 2. Overall description
 
-### 2.1 Product Perspective
-BBMS operates as a centralized web application running on modern client browsers and backed by a Node.js/Express application server with an embedded relational database engine (SQLite). It acts as an intermediary node in the healthcare network:
+## 2.1 Product perspective
+The Blood Bank Management System operates as a centralized, self-contained client-server web application. The backend is powered by Node.js and Express RESTful services backed by an ACID-compliant SQLite relational database running in Write-Ahead Logging (WAL) mode for high concurrent read throughput. The frontend utilizes responsive semantic HTML5, vanilla modern JavaScript (ES6+), and Tailwind CSS for mobile-friendly UI rendering. The application is completely containerizable and can run locally or behind reverse proxies (Nginx, Cloudflare Tunnels) for secure HTTPS access.
 
-```
-+------------------+         +-------------------------------+         +---------------------+
-|  Blood Donors    | <-----> |                               | <-----> | Hospital Transfusion|
-|  & Public Users  |         |   Blood Bank Management       |         | Departments         |
-+------------------+         |   System (BBMS) Server        |         +---------------------+
-                             |                               |
-+------------------+         |                               |         +---------------------+
-| Blood Bank Staff | <-----> |   - Inventory & Testing Core  | <-----> | Health Regulatory / |
-| & Lab Techs      |         |   - Compatibility Engine      |         | Auditing Agencies   |
-+------------------+         +-------------------------------+         +---------------------+
-```
+## 2.2 Major product functions
+- Donor registration, medical eligibility self-screening, and digital donor card generation.
+- Blood donation appointment booking and blood drive camp scheduling.
+- Blood collection logging with unique barcode-compatible Bag IDs and donor linkage.
+- Laboratory serology testing entry with automated quarantine enforcement for reactive units.
+- Blood component separation tracking (PRBC, Platelets, FFP) with distinct temperature and shelf lives.
+- Real-time blood stock inventory management categorized by 8 blood groups and component types.
+- First-Expired-First-Out (FEFO) inventory allocation and proactive expiration threshold alerts.
+- Hospital blood requisition workflow supporting Emergency/STAT and routine priority queues.
+- Automated ABO/Rh compatibility cross-matching engine.
+- Cryptographically signed dispatch manifests and chain-of-custody delivery verification.
+- Immutable system audit logging and regulatory compliance reporting.
 
-### 2.2 Product Functions
-1. **Donor Registry & Health Profiling**: Tracks donor contact, medical history, physical vitals, and computes cooldown timelines.
-2. **Component Separation & Inventory Ledger**: Generates unique bag barcode IDs, monitors component separation, shelf-life, and ambient storage racks.
-3. **Hospital Requisition & Triage**: Receives requisitions, prioritizes based on emergency score (`ROUTINE`, `URGENT`, `CRITICAL`), and validates ABO compatibility.
-4. **Blood Camp Organization**: Allows organizers to register camps, track attendee RSVPs, and register on-site collections.
-5. **Shortage Broadcast Alerts**: Triggers notification feeds when stock levels fall below safety thresholds.
-6. **Regulatory Reporting**: Produces daily stock reports, discard/spoilage logs, and donor turnaround statistics.
+## 2.3 User roles and characteristics
+- **Public Donor** — Voluntary blood donor. Expects intuitive self-service portal, eligibility guidance, simple appointment booking, and instant access to digital donor cards.
+- **Hospital Representative** — Authorized hospital physician or blood bank coordinator. Submits urgent blood requisitions, tracks fulfillment status, and confirms custody transfer.
+- **Blood Bank Staff / Lab Technician** — Laboratory professional logging blood collections, recording infectious disease screening assays, separating components, and managing stock allocations.
+- **System Administrator** — IT/Operations lead managing user roles, configuring blood bank parameters, inspecting audit trails, and generating regulatory compliance reports.
+- **Course Evaluator / Inspector** — Academic evaluator reviewing source code modularity, test coverage, relational schemas, and adherence to Software Engineering standards.
 
-### 2.3 User Classes and Characteristics
-| User Class | Technical Expertise | System Responsibilities | Access Privileges |
-| :--- | :--- | :--- | :--- |
-| **System Administrator** | High | System configuration, user account provisioning, audit log reviews, database backup. | Full administrative read/write access. |
-| **Blood Bank Staff / Lab Tech** | Moderate | Screening donors, logging donations, entering TTI lab results, managing component stock, dispatching approved requests. | Operational inventory and testing read/write access. |
-| **Hospital Representative** | Moderate | Submitting blood requests for admitted patients, tracking dispatch status, verifying receipt. | Requisition creation and tracking access. |
-| **Registered Donor** | Low-to-Moderate | Viewing donation history, checking eligibility date, booking camp appointments, downloading donor certificate. | Self-profile and public search access. |
-| **Public / Guest Recipient** | Low | Searching emergency blood availability by city/group, locating nearest blood banks. | Read-only public availability search. |
+## 2.4 Operating environment
+- **Server:** Node.js 18+ runtime on macOS (Apple Silicon / Intel), Linux (Ubuntu 22.04 LTS), or Windows 10/11 Server.
+- **Database:** SQLite 3.x embedded database with WAL mode enabled; zero external database daemon required.
+- **Client:** Modern evergreen web browsers (Chrome 100+, Safari 15+, Firefox 100+, Edge 100+) on desktop, tablet, and mobile devices.
+- **Network:** Standard HTTP/1.1 and HTTP/2 over TCP ports 3000 / 443 with TLS encryption.
 
-### 2.4 Operating Environment
-- **Server OS**: Linux (Ubuntu 22.04 LTS / Debian), macOS, Windows 10/11.
-- **Runtime Environment**: Node.js (v18.x or higher LTS).
-- **Client Platforms**: Modern desktop and mobile web browsers (Google Chrome 110+, Mozilla Firefox 110+, Safari 16+, Microsoft Edge).
-- **Database**: SQLite3 (embedded) or PostgreSQL 14+.
-
-### 2.5 Design and Implementation Constraints
-- **Zero Configuration Portability**: The system must run smoothly in standard evaluation environments with an embedded zero-setup database.
-- **Regulatory Strictness**: Blood units marked with reactive or unverified TTI results MUST be locked in quarantine and cannot be allocated.
-- **Component Expiration Rigidity**: Units past their exact expiry timestamp MUST be automatically flagged as `EXPIRED` and forbidden from issuance.
-- **FEFO Dispatch**: The compatibility engine MUST select compatible units using First-Expired-First-Out (FEFO) to minimize biological wastage.
-
-### 2.6 Assumptions and Dependencies
-- Donors provide accurate personal and medical screening answers.
-- Blood testing for infectious diseases is performed on physical laboratory instruments, and technicians record binary pass/fail results into BBMS.
-- Continuous network connectivity is available between hospital client terminals and the BBMS web server.
+## 2.5 Constraints and assumptions
+- Standards compliance: Clean architectural separation between REST controllers, business service logic, and database access models.
+- Relational integrity: Foreign keys strictly enforced across all database tables (donors, units, requests, logs).
+- Safe dispensing: The system strictly blocks allocation of expired, un-tested, or serologically reactive blood units.
+- Physical pre-condition: Clinical vitals (hemoglobin ≥ 12.5 g/dL, blood pressure, weight ≥ 45 kg) are verified by physical nursing staff at collection.
+- Regulatory compliance: Complete audit logging of all inventory changes to fulfill National Blood Transfusion Council guidelines.
 
 ---
 
-## 3. External Interface Requirements
+# 3. External interface requirements
 
-### 3.1 User Interfaces
-The system provides responsive web interfaces built with standard semantic HTML5, modern CSS3 (Tailwind styling), and dynamic JavaScript.
-1. **Public Landing / Emergency Portal**: Prominent blood group search widget, real-time live availability indicators, and interactive camp listings.
-2. **Staff / Admin Operations Console**: Tabular inventory matrix, batch blood intake form, lab test result verification modal, and requisition approval queue with FEFO suggestions.
-3. **Hospital Portal**: Streamlined requisition form capturing Patient ID, Blood Group, Component, Quantity, Urgency Level, and Doctor's Prescription Ref.
-4. **Donor Portal**: Visual eligibility meter (e.g., "Eligible in 14 days" or "Eligible to Donate Today"), donation timeline, and camp RSVP card.
+## 3.1 User interfaces
+The web interface is engineered with responsive, accessible Tailwind CSS components. Key screens include:
+- **Public Landing & Availability Portal:** Real-time stock summary, donor educational guidelines, and blood camp schedules.
+- **Donor Portal:** Clean health questionnaire, appointment selector with time-slot reservation, and printable digital donor card.
+- **Staff Operations Dashboard:** Rapid unit logging with Bag ID scanner support, serology results checklist, and quarantine status toggles.
+- **Hospital Order Portal:** Structured requisition form with blood group selectors, unit counts, priority indicators, and delivery tracking.
+- **Admin Control Center:** Interactive stock analytics, user role administration, and immutable audit trail tables.
 
-### 3.2 Hardware Interfaces
-- **Barcode / QR Scanner**: Standard HID (Human Interface Device) USB/Bluetooth scanners emitting text strings into input fields for bag barcode tracking.
-- **Display Terminals**: Standard 1080p desktop monitors in blood bank facilities and mobile responsive viewports for donors.
+## 3.2 Hardware Interfaces
+- **Client Workstation / Mobile Device:** Minimum 1024x768 resolution for staff dashboard; responsive down to 360px width for donor portal.
+- **Barcode / QR Scanner:** Optional standard USB/Bluetooth HID keyboard emulation for rapid Bag ID and Donor Card scanning.
+- **Host Server:** Standard computing hardware (minimum 1 vCPU, 1 GB RAM, 10 GB storage).
 
-### 3.3 Software Interfaces
-- **Relational Database Management System**: SQLite3 relational database accessed via transactional SQL queries.
-- **Cryptographic Libraries**: `bcryptjs` for salted password hashing; `jsonwebtoken` / cookie session management for stateless authentication.
+## 3.3 Software Interfaces
+- **Operating System:** macOS, Linux (Debian/Ubuntu/CentOS), or Windows 10/11.
+- **Runtime Environment:** Node.js (v18.x or v20.x LTS).
+- **Database Engine:** SQLite3 embedded database engine.
+- **Tunnel / Proxy:** Cloudflare Tunnel daemon / Nginx for reverse proxying and automated SSL/TLS termination.
 
-### 3.4 Communications Interfaces
-- **Protocol**: HTTP/1.1 and HTTPS using standard TLS 1.3 encryption.
-- **Data Exchange Format**: JSON (JavaScript Object Notation) over RESTful APIs.
-
----
-
-## 4. System Features & Functional Requirements
-
-### 4.1 Module 1: Authentication & Role-Based Access Control (RBAC)
-- **[FR-1.1] User Registration**: The system MUST allow donors and hospital representatives to register accounts with validated email, phone, and password credentials.
-- **[FR-1.2] Secure Authentication**: The system MUST authenticate users using bcrypt-hashed passwords (minimum cost factor 10) and issue secure session tokens.
-- **[FR-1.3] Role Authorization**: The system MUST restrict access to endpoints based on assigned roles (`ADMIN`, `STAFF`, `HOSPITAL`, `DONOR`).
-- **[FR-1.4] Session Management**: The system MUST invalidate session tokens upon user logout and reject unauthorized requests with HTTP 401/403.
-
-### 4.2 Module 2: Donor Registration & Medical Screening
-- **[FR-2.1] Donor Profile Details**: The system MUST record donor full name, national ID/Aadhaar/SRN, date of birth, biological sex, contact number, address, and verified ABO/Rh blood group.
-- **[FR-2.2] Vitals & Questionnaire Logging**: The system MUST record pre-donation vitals: weight ($\ge 45\text{ kg}$), hemoglobin ($\ge 12.5\text{ g/dL}$), systolic/diastolic blood pressure, and pulse.
-- **[FR-2.3] 90-Day Cooldown Validation**: The system MUST compute the interval since the donor's last whole blood donation. If the interval is $< 90\text{ days}$, the system MUST reject donation scheduling with an eligibility error indicating days remaining.
-- **[FR-2.4] Digital Donor Card**: The system MUST generate a personalized donor card displaying donor ID, blood group, total lifetime donations, and next eligible date.
-
-### 4.3 Module 3: Blood Collection, Testing & Processing
-- **[FR-3.1] Unique Barcode Generation**: For every donation, the system MUST generate a globally unique Blood Bag Unit Identifier (e.g., `BLD-2026-001`).
-- **[FR-3.2] Serology / TTI Test Recording**: The system MUST require authorized staff to record results for HIV 1&2, Hepatitis B (HBsAg), Hepatitis C (HCV), Syphilis (VDRL), and Malaria.
-- **[FR-3.3] Quarantine Locking**: Any unit with pending or reactive test results MUST remain in `TESTING` or `QUARANTINED` status and CANNOT be issued.
-- **[FR-3.4] Component Separation**: The system MUST allow staff to record separation of a whole blood unit into derivatives:
-  - Packed Red Blood Cells (PRBC) - Expiry: Collection Date + 42 Days.
-  - Platelets - Expiry: Collection Date + 5 Days.
-  - Fresh Frozen Plasma (FFP) - Expiry: Collection Date + 365 Days.
-
-### 4.4 Module 4: Inventory Management & Expiry Tracking
-- **[FR-4.1] Real-time Stock Matrix**: The system MUST maintain real-time counts across all 8 blood groups and 4 components.
-- **[FR-4.2] FEFO (First Expired First Out) Sorting**: Stock queries for allocation MUST sort available units by `expiry_date ASC`.
-- **[FR-4.3] Automated Expiry Flagging**: Units where `current_timestamp >= expiry_date` MUST automatically transition to `EXPIRED` status.
-- **[FR-4.4] Discard Audit Logging**: The system MUST record reason, timestamp, and technician ID whenever an expired or contaminated unit is discarded.
-- **[FR-4.5] Low Stock Thresholds**: The system MUST trigger visual alerts when any blood group stock falls below 5 units.
-
-### 4.5 Module 5: Blood Requisition & Compatibility Matching
-- **[FR-5.1] Hospital Request Submission**: The system MUST allow authenticated hospital representatives to submit requisitions with Patient Name, Hospital File Number, Required Blood Group, Component Type, Units Needed, and Urgency (`ROUTINE`, `URGENT`, `CRITICAL`).
-- **[FR-5.2] ABO/Rh Compatibility Engine**: The system MUST apply clinical cross-match rules:
-  - For Whole Blood / PRBC:
-    - $O^-$ is universal donor (can be given to any group).
-    - $O^+$ can be given to $O^+, A^+, B^+, AB^+$.
-    - $A^-$ can be given to $A^-, A^+, AB^-, AB^+$.
-    - $A^+$ can be given to $A^+, AB^+$.
-    - $B^-$ can be given to $B^-, B^+, AB^-, AB^+$.
-    - $B^+$ can be given to $B^+, AB^+$.
-    - $AB^-$ can be given to $AB^-, AB^+$.
-    - $AB^+$ can only be given to $AB^+$ (Universal recipient).
-  - For Plasma (FFP):
-    - $AB$ is the universal plasma donor; $O$ is universal plasma recipient.
-- **[FR-5.3] Allocation & Reservation**: When a requisition is approved, the specified units MUST be marked `RESERVED` immediately to prevent race conditions.
-- **[FR-5.4] Dispatch Confirmation**: Upon physical pickup, staff MUST mark the request `FULFILLED`, marking the reserved bags as `DISPATCHED`.
-
-### 4.6 Module 6: Blood Donation Camps & Drive Management
-- **[FR-6.1] Camp Scheduling**: Admin/Staff MUST be able to create donation camps with Name, Venue, Date, Start/End Time, and Organizer Details.
-- **[FR-6.2] Donor RSVP**: Registered donors MUST be able to pre-register for upcoming camps.
-- **[FR-6.3] Drive Metrics**: The system MUST track total registrations and total units collected per camp.
-
-### 4.7 Module 7: Emergency Alert & Broadcast System
-- **[FR-7.1] Critical Shortage Trigger**: When critical requisitions cannot be fulfilled from stock, the system MUST generate an emergency broadcast notice.
-- **[FR-7.2] Donor Notification Feed**: Donors with matching blood groups who are eligible (cooldown satisfied) MUST be surfaced for outreach.
-
-### 4.8 Module 8: Analytics, Reports & Audit Trails
-- **[FR-8.1] Executive Dashboard Metrics**: The system MUST display total donations, active inventory, pending requests, and upcoming expirations.
-- **[FR-8.2] Audit Trail**: All state changes to blood units and requisitions MUST record actor ID, timestamp, and previous/new status.
+## 3.4 Communications Interfaces
+RESTful JSON APIs over HTTP/HTTPS. Stateful session management via HTTP-only, SameSite secure cookies and JWT tokens. Standard CORS policies configured to prevent unauthorized cross-origin requests.
 
 ---
 
-## 5. Non-Functional Requirements
+# 4. System features (detailed)
 
-### 5.1 Performance Requirements
-- **[NFR-1.1] Search Latency**: Blood stock availability queries MUST return within $\le 200\text{ ms}$ under normal operating conditions.
-- **[NFR-1.2] Concurrent Users**: The server architecture MUST support at least 50 concurrent transactions without deadlocks or race conditions during blood reservation.
-- **[NFR-1.3] Page Load Time**: Frontend UI views MUST achieve full interactivity within $\le 1.5\text{ seconds}$ on standard broadband connections.
+Each requirement below carries acceptance criteria and a reference test case. Functional requirement IDs follow the pattern BBMS-F.
 
-### 5.2 Safety Requirements
-- **[NFR-2.1] Biological Safety Guarantee**: Under no circumstances shall the system allow a unit with reactive serology or an expired timestamp to be marked as `AVAILABLE` or `DISPATCHED`.
-- **[NFR-2.2] Accidental Deletion Prevention**: Hard deletion of blood unit records and completed requisitions is strictly prohibited; soft-deletions and audit logs MUST be enforced.
+## 4.1 User Authentication and Role Management
+*Description: Establish identity, enforce role-based access control (RBAC), and protect user sessions.*
 
-### 5.3 Security Requirements
-- **[NFR-3.1] Password Cryptography**: Passwords MUST never be stored in plaintext. They MUST be hashed using `bcrypt` with salt rounds $\ge 10$.
-- **[NFR-3.2] Input Sanitization & SQLi Defense**: All user inputs MUST be sanitized and executed via parameterized queries to eliminate SQL injection vulnerabilities.
-- **[NFR-3.3] Cross-Site Scripting (XSS) Prevention**: All dynamic HTML output MUST be escaped properly.
-- **[NFR-3.4] Data Confidentiality**: Sensitive donor medical history and test results MUST only be visible to authenticated medical staff and the donor themselves.
+| Req ID | Requirement (shall…) | Type | Prio. | Source / Stakeholder | Acceptance criteria / Test ref | Dependencies |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **BBMS-F-001** | The system shall authenticate users via email and bcrypt-hashed passwords, generating secure session tokens. | Functional | High | Security / Admin | AC: Valid credentials grant access; invalid credentials return 401 Unauthorized. Test: TC-AUTH-01 | User database |
+| **BBMS-F-002** | The system shall enforce RBAC across Donor, Hospital, Staff, and Admin roles, returning HTTP 403 for unauthorized routes. | Functional | High | Security / Evaluator | AC: Donors cannot access staff endpoints; hospitals cannot alter inventory. Test: TC-AUTH-02 | BBMS-F-001 |
+| **BBMS-F-003** | The system shall temporarily lock out accounts after 5 consecutive failed login attempts within 15 minutes. | Functional | Medium | Security | AC: 5th failure triggers 15-min lockout; event logged to audit table. Test: TC-AUTH-03 | BBMS-F-001 |
+| **BBMS-F-004** | The system shall provide a password reset flow utilizing time-limited (15 min) cryptographic tokens. | Functional | Medium | Donor / Hospital | AC: Expired or reused tokens are rejected with error diagnostic. Test: TC-AUTH-04 | BBMS-F-001 |
+| **BBMS-F-005** | The system shall terminate sessions and invalidate authentication tokens upon explicit user logout. | Functional | High | User / Security | AC: Subsequent requests with cleared session return 401 Unauthorized. Test: TC-AUTH-05 | BBMS-F-001 |
 
-### 5.4 Software Quality Attributes
-- **[NFR-4.1] Usability**: Intuitive user interface with clear visual hierarchy, color-coded status badges, and mobile-responsive layout.
-- **[NFR-4.2] Reliability (MTBF)**: The system MUST maintain 99.5% uptime during operational hours.
-- **[NFR-4.3] Maintainability**: Modular codebase adhering to MVC/REST separation of concerns with clean documentation and seed routines.
+## 4.2 Donor Management and Appointment Scheduling
+*Description: Facilitate donor registration, medical eligibility self-screening, and appointment management.*
 
----
+| Req ID | Requirement (shall...) | Type | Priority | Acceptance Criteria / Test Case | Dependencies / Comments |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **BBMS-F-006** | The system shall capture donor profile details (name, DOB, blood group, contact, emergency contact). | Functional | High | AC: Profile stored with unique Donor ID; duplicate emails rejected. Test: TC-DNR-01 | Donor portal |
+| **BBMS-F-007** | The system shall present a mandatory clinical eligibility questionnaire (age, weight, hemoglobin, travel). | Functional | High | AC: Ineligible responses flag donor and block immediate appointment. Test: TC-DNR-02 | BBMS-F-006 |
+| **BBMS-F-008** | The system shall enforce a minimum 90-day interval between whole blood donation appointments. | Functional | High | AC: Appointment booking disabled if prior donation < 90 days ago. Test: TC-DNR-03 | Donation history |
+| **BBMS-F-009** | The system shall generate a digital donor card displaying donor photo placeholder, blood group, and QR code. | Functional | Medium | AC: Digital card renders correctly and QR encodes valid donor verification URL. Test: TC-DNR-04 | BBMS-F-006 |
+| **BBMS-F-010** | The system shall allow donors to schedule, view, and cancel upcoming appointments up to 24 hours prior. | Functional | Medium | AC: Slot reservations update camp capacity counts in real time. Test: TC-DNR-05 | BBMS-F-008 |
 
-## 6. System Models & Diagrams
+## 4.3 Blood Collection, Testing, and Inventory Processing
+*Description: Record collected blood, enforce serology testing, quarantine infectious units, and separate components.*
 
-### 6.1 Use Case Diagram
+| Req ID | Requirement (shall...) | Type | Priority | Acceptance Criteria / Test Case | Dependencies / Comments |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **BBMS-F-011** | The system shall record blood collections with unique Bag IDs, collection timestamps, and phlebotomist IDs. | Functional | High | AC: Unique alphanumeric Bag ID assigned; status initialized to PENDING_TESTING. Test: TC-INV-01 | Staff auth |
+| **BBMS-F-012** | The system shall require mandatory serology test results (HIV, HBV, HCV, Syphilis, Malaria) before clearance. | Functional | High | AC: Units cannot be marked AVAILABLE without all 5 negative test results. Test: TC-INV-02 | BBMS-F-011 |
+| **BBMS-F-013** | The system shall automatically quarantine and permanently lock any blood unit testing positive for any TTI. | Functional | High | AC: Reactive unit status set to QUARANTINED; allocation disabled permanently. Test: TC-INV-03 | BBMS-F-012 |
+| **BBMS-F-014** | The system shall track component separation into PRBC (35d shelf life), Platelets (5d), and FFP (365d). | Functional | High | AC: Child unit records created with accurate expiry dates and storage temperatures. Test: TC-INV-04 | BBMS-F-012 |
+| **BBMS-F-015** | The system shall enforce FEFO (First-Expired-First-Out) stock ranking and trigger low/expiring inventory alerts. | Functional | Medium | AC: Inventory listings display closest expiry first; expiring units highlighted in red. Test: TC-INV-05 | BBMS-F-014 |
 
-```mermaid
-flowchart TD
-    subgraph Actors
-        D["Donor"]
-        H["Hospital Representative"]
-        S["Blood Bank Staff / Lab Tech"]
-        A["System Admin"]
-        P["Public / Patient"]
-    end
+## 4.4 Hospital Blood Requisition and Fulfillment
+*Description: Process hospital requisitions, verify compatibility, reserve units, and track dispatch handover.*
 
-    subgraph BBMS["Blood Bank Management System"]
-        UC1["Register / Login (RBAC)"]
-        UC2["Search Blood Availability"]
-        UC3["Check Donation Eligibility (90d)"]
-        UC4["Book Camp Appointment"]
-        UC5["View Donor Card & History"]
-        UC6["Submit Blood Requisition"]
-        UC7["Track Requisition Status"]
-        UC8["Screen Donor & Log Vitals"]
-        UC9["Log Blood Collection & Barcode"]
-        UC10["Record Serology / TTI Tests"]
-        UC11["Manage Component Separation"]
-        UC12["Monitor Stock & Expiry (FEFO)"]
-        UC13["Match Compatibility & Approve Request"]
-        UC14["Dispatch Blood Bags"]
-        UC15["Schedule Blood Camps"]
-        UC16["Manage Users & View Audit Logs"]
-    end
+| Req ID | Requirement (shall...) | Type | Priority | Acceptance Criteria / Test Case | Dependencies / Comments |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **BBMS-F-016** | The system shall allow verified hospitals to submit blood requests with blood group, units, patient ID, and priority. | Functional | High | AC: Requisition recorded with status PENDING; emergency orders flagged STAT. Test: TC-REQ-01 | Hospital auth |
+| **BBMS-F-017** | The system shall verify ABO/Rh compatibility rules and check real-time stock availability for requisitions. | Functional | High | AC: Incompatible blood groups prevented; universal donor (O-) permitted when configured. Test: TC-REQ-02 | BBMS-F-015 |
+| **BBMS-F-018** | The system shall allow staff to approve requisitions and transition corresponding units to RESERVED status. | Functional | High | AC: Approved units removed from available stock count immediately. Test: TC-REQ-03 | BBMS-F-017 |
+| **BBMS-F-019** | The system shall generate a dispatch manifest containing unit Bag IDs, issuing officer, and hospital signature lines. | Functional | High | AC: Printable dispatch manifest generated with cold-chain verification checklist. Test: TC-REQ-04 | BBMS-F-018 |
+| **BBMS-F-020** | The system shall record delivery confirmation and update request status to FULFILLED upon hospital receipt. | Functional | High | AC: Receiving officer name and timestamp recorded; request marked FULFILLED. Test: TC-REQ-05 | BBMS-F-019 |
 
-    P --> UC2
-    D --> UC1
-    D --> UC2
-    D --> UC3
-    D --> UC4
-    D --> UC5
+## 4.5 Persistence, Audit Logging, and Reporting
+*Description: Maintain immutable operational audit trails, generate regulatory reports, and provide public availability data.*
 
-    H --> UC1
-    H --> UC2
-    H --> UC6
-    H --> UC7
-
-    S --> UC1
-    S --> UC8
-    S --> UC9
-    S --> UC10
-    S --> UC11
-    S --> UC12
-    S --> UC13
-    S --> UC14
-    S --> UC15
-
-    A --> UC1
-    A --> UC16
-    A --> UC12
-```
+| Req ID | Requirement (shall…) | Type | Prio. | Source / Stakeholder | Acceptance criteria / Test ref | Dependencies |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **BBMS-F-021** | The system shall record all unit status changes, approvals, and discards in an append-only audit trail table. | Functional | High | Regulatory / Admin | AC: Audit record contains ISO 8601 timestamp, user ID, IP, and state diff. Test: TC-AUD-01 | SQLite audit table |
+| **BBMS-F-022** | The system shall present an interactive analytics dashboard of current stock, pending requests, and collection stats. | Functional | Medium | Admin / Staff | AC: Dashboard metrics match underlying database counts precisely. Test: TC-AUD-02 | BBMS-F-015 |
+| **BBMS-F-023** | The system shall allow administrators to export inventory and requisition reports in CSV and printable formats. | Functional | Medium | Admin | AC: Generated CSV contains valid headers and sanitized data. Test: TC-AUD-03 | BBMS-F-021 |
+| **BBMS-F-024** | The system shall provide an unauthenticated public portal displaying real-time aggregate blood availability. | Functional | Medium | Public / Donor | AC: Public view displays stock counts without exposing sensitive donor records. Test: TC-AUD-04 | BBMS-F-015 |
+| **BBMS-F-025** | The system shall support automated database backups and integrity verification without process disruption. | Functional | High | Sysadmin / Dev | AC: SQLite WAL backup executes cleanly; PRAGMA integrity_check returns ok. Test: TC-AUD-05 | SQLite engine |
 
 ---
 
-### 6.2 Data Flow Diagram (DFD) - Level 0 (Context Diagram)
+# 5. Non-functional requirements (detailed)
 
-```mermaid
-flowchart LR
-    Donor["Donor"]
-    Hospital["Hospital"]
-    Staff["Blood Bank Staff"]
-    Public["Public / Patient"]
-    
-    BBMS(("0.0<br/>Blood Bank<br/>Management<br/>System (BBMS)"))
+NFRs are measurable quality constraints and are tied to verification activities.
 
-    Donor -->|"Donor Details, Health Vitals, Camp RSVP"| BBMS
-    BBMS -->|"Eligibility Status, Donor Card, Camp Details"| Donor
+| Req ID | Requirement | Category | Priority | Acceptance Criteria / Measurement |
+| :--- | :--- | :--- | :--- | :--- |
+| **BBMS-NF-001** | Under a simulated load of 50 concurrent users, the application shall respond to 95% of HTTP API requests within 250 ms. | Performance | High | ApacheBench / k6 benchmark demonstrates p95 < 250 ms over 1,000 requests. Test: TC-NF-PERF-01 |
+| **BBMS-NF-002** | The system shall maintain 99.9% availability during operational hours with zero unhandled exceptions in 72h stress tests. | Reliability | High | Continuous automated API test harness runs for 72 hours without server crash. Test: TC-NF-REL-01 |
+| **BBMS-NF-003** | All user interfaces shall be responsive across viewports from 360px to 1920px and adhere to WCAG 2.1 Level AA color contrast. | Usability | Medium | Lighthouse Accessibility score ≥ 95; zero layout overflow on mobile breakpoints. Test: TC-NF-UX-01 |
+| **BBMS-NF-004** | The backend application and database shall deploy and run on macOS, Ubuntu 22.04 LTS, and Windows 10/11 without modification. | Portability | Medium | Automated clean install and startup test succeeds on all 3 target OS platforms. Test: TC-NF-PORT-01 |
+| **BBMS-NF-005** | The codebase shall maintain modular separation between routes, controllers, models, and public assets with full API docs. | Maintainability | Medium | Code inspection confirms zero raw SQL in route handlers; ESLint passes with 0 errors. Test: TC-NF-MNT-01 |
 
-    Hospital -->|"Blood Requisition, Patient Info, Urgency"| BBMS
-    BBMS -->|"Requisition Status, Allocated Bag Barcodes"| Hospital
+## 5.1 Security
 
-    Staff -->|"TTI Test Results, Component Separation, Bag Intake"| BBMS
-    BBMS -->|"Stock Alerts, Expiry Warnings, Matching Suggestions"| Staff
+### 5.1.1 Security objectives
+The Blood Bank Management System processes sensitive medical information, confidential donor contact details, and critical hospital blood inventory. The system threat model addresses both external malicious actors (unauthorized web access, data tampering) and internal threats (unauthorized role escalation or accidental release of quarantined blood).
 
-    Public -->|"Availability Query (Blood Group, City)"| BBMS
-    BBMS -->|"Real-time Stock Availability Counts"| Public
-```
+- **SO-1 (Confidentiality of Donor Health Information):** Donor health screening questionnaires, serology results, and personal identifiable information (PII) shall be visible only to authorized medical staff and the donor themselves.
+- **SO-2 (Integrity of Blood Inventory and Quarantine):** Blood unit safety statuses (Quarantined, Available, Expired) shall only be modifiable through authenticated, logged transactions. No expired or infected unit shall ever be issued.
+- **SO-3 (Account Authentication & Credential Protection):** User passwords shall be hashed using salted bcrypt with minimum 10 rounds; plaintext passwords shall never appear in logs or responses.
+- **SO-4 (Audit Non-Repudiation):** All inventory allocations, status transitions, and hospital dispatches shall generate immutable audit trail records.
 
----
+*Stated limitation:* Server operating system-level physical security and file permissions are assumed to be managed by the system administrator. Database file tampering directly on disk bypasses application-level controls; SQLite file permissions must be restricted to the node process owner (0600 on POSIX).
 
-### 6.3 Data Flow Diagram (DFD) - Level 1 (Functional Decomposition)
+### 5.1.2 Security requirements
 
-```mermaid
-flowchart TD
-    D["Donor"]
-    H["Hospital"]
-    S["Staff / Lab Tech"]
-
-    subgraph Processes
-        P1(("1.0<br/>User & Donor<br/>Management"))
-        P2(("2.0<br/>Testing &<br/>Component Lab"))
-        P3(("3.0<br/>Inventory &<br/>Expiry Engine"))
-        P4(("4.0<br/>Compatibility &<br/>Requisition Engine"))
-        P5(("5.0<br/>Camp & Alert<br/>Coordination"))
-    end
-
-    subgraph DataStores["Data Stores"]
-        DS1[("D1: Users & Donors")]
-        DS2[("D2: Blood Units & Tests")]
-        DS3[("D3: Requisitions & Allocations")]
-        DS4[("D4: Camps & RSVPs")]
-    end
-
-    D -->|"Registration, Vitals"| P1
-    P1 <-->|"Read/Write Profile & Cooldown"| DS1
-    P1 -->|"Eligibility Confirmation"| D
-
-    S -->|"Donation Intake, TTI Results"| P2
-    P2 <-->|"Verify Donor"| DS1
-    P2 -->|"Create Unit, Log Tests"| DS2
-
-    P2 -->|"Cleared Stock"| P3
-    P3 <-->|"Update Stock, Expiry Audit"| DS2
-    P3 -->|"Low Stock Alerts"| S
-
-    H -->|"Blood Request"| P4
-    P4 <-->|"Check Stock & FEFO Match"| DS2
-    P4 <-->|"Write Request Record"| DS3
-    P4 -->|"Allocation Notification"| H
-    S -->|"Approve & Dispatch"| P4
-
-    S -->|"Schedule Camps"| P5
-    D -->|"RSVP"| P5
-    P5 <-->|"Camp Data"| DS4
-```
+| Req ID | Requirement (shall…) | Type | Priority | Acceptance criteria / Test case ref |
+| :--- | :--- | :--- | :--- | :--- |
+| **BBMS-SR-001** | All user passwords shall be stored only as salted bcrypt hashes with at least 10 salt rounds; plaintext passwords shall never be logged or echoed. | Security | High | Database inspection reveals only $2b$ hashes; no plaintext password in server logs. Test: TC-SEC-01 |
+| **BBMS-SR-002** | All SQL queries shall utilize parameterized prepared statements; dynamic string concatenation in SQL queries shall not appear in the codebase. | Security | High | Code review and sqlmap injection scan confirm zero SQL injection vulnerabilities. Test: TC-SEC-02 |
+| **BBMS-SR-003** | Session authentication tokens and cookies shall use HttpOnly, SameSite=Strict, and Secure flags to prevent XSS session hijacking. | Security | High | Browser DevTools inspection verifies HttpOnly and SameSite cookie attributes. Test: TC-SEC-03 |
+| **BBMS-SR-004** | Role authorization middleware shall protect every non-public API endpoint, returning HTTP 403 for unauthorized privilege escalation attempts. | Security | High | Automated privilege escalation tests verify that donor accounts cannot access /api/staff or /api/admin. Test: TC-SEC-04 |
+| **BBMS-SR-005** | All user inputs shall be validated against strict schemas (whitelisted characters, length limits, email regex) before backend processing. | Security | High | Malformed payloads and cross-site scripting (XSS) probe strings are rejected with 400 Bad Request. Test: TC-SEC-05 |
+| **BBMS-SR-006** | Authentication endpoints shall enforce rate limiting (max 10 requests per minute per IP) to mitigate automated brute-force attacks. | Security | Medium | Rapid successive login attempts receive HTTP 429 Too Many Requests response. Test: TC-SEC-06 |
 
 ---
 
-### 6.4 Data Flow Diagram (DFD) - Level 2 (Requisition & Cross-Match Flow)
+# 6. Quality attributes & acceptance tests
 
-```mermaid
-flowchart TD
-    H["Hospital Representative"]
-    Staff["Blood Bank Staff"]
+Exit criteria for acceptance:
+- Every high-priority functional requirement (BBMS-F-001 through BBMS-F-025) is fully implemented and passes all automated verification test suites.
+- No non-functional requirement fails: in particular, the automated 72-hour stress test and response latency benchmarks (< 250 ms p95) are blocking.
+- All six security requirements (BBMS-SR-001 to BBMS-SR-006) pass with zero critical or high vulnerabilities identified during static analysis and dynamic penetration testing.
+- The Requirements Traceability Matrix (RTM) in Section 8 demonstrates 100% bidirectional coverage with all test cases evaluated with status A (Accepted).
 
-    subgraph P4["Process 4.0: Requisition & Allocation Deep-Dive"]
-        P41(("4.1<br/>Validate Request<br/>& Urgency"))
-        P42(("4.2<br/>Query ABO/Rh<br/>Compatibility"))
-        P43(("4.3<br/>FEFO Priority<br/>Selection"))
-        P44(("4.4<br/>Reserve Bags<br/>& Prevent Race"))
-        P45(("4.5<br/>Authorize &<br/>Dispatch"))
-    end
+**Acceptance test suites:** TC-AUTH (authentication and session lifecycle), TC-DNR (donor profile, questionnaire, and appointment scheduling), TC-INV (blood collection, serology testing, component separation, and FEFO stock logic), TC-REQ (hospital requisitions, cross-matching, allocation, and dispatch), TC-AUD (audit trail persistence and reporting), TC-NF (performance, reliability, usability, and portability), TC-SEC (password security, SQL injection, XSS, RBAC enforcement, and rate limiting).
 
-    DS_Req[("D3: Requisitions")]
-    DS_Stock[("D2: Blood Units (Available)")]
-
-    H -->|"1. Submit Request Details"| P41
-    P41 -->|"2. Record Pending Request"| DS_Req
-    P41 -->|"3. Trigger Match"| P42
-    P42 <-->|"4. Filter by ABO Rules"| DS_Stock
-    P42 -->|"5. Compatible Candidates"| P43
-    P43 <-->|"6. Sort by Expiry Date ASC"| DS_Stock
-    P43 -->|"7. Best Matching Units"| P44
-    P44 -->|"8. Status -> RESERVED"| DS_Stock
-    P44 -->|"9. Ready for Staff Review"| Staff
-    Staff -->|"10. Staff Approves Pickup"| P45
-    P45 -->|"11. Status -> DISPATCHED"| DS_Stock
-    P45 -->|"12. Status -> FULFILLED"| DS_Req
-    P45 -->|"13. Handover Slip"| H
-```
+**Verification methods used:** Automated end-to-end API integration tests using Node.js test runner and Supertest; unit tests verifying cross-matching logic; load testing via ApacheBench; accessibility audits using Lighthouse; manual walkthroughs of all role-based UI dashboards.
 
 ---
 
-### 6.5 Entity-Relationship (ER) Diagram
+# 7. System models and diagrams
 
-```mermaid
-erDiagram
-    USERS ||--o| DONORS : "extends (if role=DONOR)"
-    USERS ||--o| HOSPITALS : "extends (if role=HOSPITAL)"
-    DONORS ||--o{ DONATIONS : "makes"
-    DONATIONS ||--|| BLOOD_UNITS : "yields"
-    BLOOD_UNITS ||--o{ BLOOD_TESTS : "undergoes"
-    HOSPITALS ||--o{ BLOOD_REQUESTS : "places"
-    BLOOD_REQUESTS ||--o{ REQUEST_ALLOCATIONS : "allocates"
-    BLOOD_UNITS ||--o{ REQUEST_ALLOCATIONS : "assigned_to"
-    USERS ||--o{ BLOOD_CAMPS : "organizes"
-    DONORS ||--o{ CAMP_REGISTRATIONS : "attends"
-    BLOOD_CAMPS ||--o{ CAMP_REGISTRATIONS : "hosts"
+## 7.1 Use-case diagram — Donor and Hospital Portal Workflows
+Figure 7.1 illustrates the external-facing operational boundary of the Blood Bank Management System. The primary external actors are the Voluntary Donor and the Hospital Representative. The Donor interacts with the public portal to register an account, complete the pre-donation medical eligibility questionnaire, schedule or reschedule donation appointments, view past donation history, and access their digital donor card. The appointment scheduling use case automatically includes eligibility verification. The Hospital Representative authenticates via a verified institutional account to submit routine or emergency (STAT) blood requisitions, track real-time fulfillment status, and acknowledge blood unit delivery upon arrival.
 
-    USERS {
-        int id PK
-        string email UK
-        string password_hash
-        string role "ADMIN | STAFF | DONOR | HOSPITAL"
-        string full_name
-        string phone
-        datetime created_at
-    }
+![Figure 7.1 — Use-case diagram: Donor and Hospital Portal Workflows](diagrams/usecase_donor_hospital.png)
 
-    DONORS {
-        int id PK
-        int user_id FK
-        string blood_group "A+ | A- | B+ | B- | AB+ | AB- | O+ | O-"
-        date date_of_birth
-        string gender "M | F | Other"
-        float weight_kg
-        float hemoglobin
-        date last_donation_date
-        string medical_history
-    }
+*Figure 7.1 — Use-case diagram: Donor and Hospital Portal Workflows*
 
-    HOSPITALS {
-        int id PK
-        int user_id FK
-        string hospital_name
-        string license_number
-        string address
-        string city
-        string emergency_contact
-    }
+## 7.2 Use-case diagram — Blood Bank Staff & Administrator Workflows
+Figure 7.2 illustrates the internal operations and administrative boundary. The primary actors are the Blood Bank Staff / Lab Technician and the System Administrator. Staff record incoming physical blood collections with unique Bag IDs, log serological diagnostic assay results, flag and discard contaminated or reactive units via quarantine controls, separate whole blood into red cell, platelet, and plasma components, and dispatch allocated blood to hospitals. System Administrators authenticate with elevated credentials to manage user accounts, assign role permissions, configure inventory threshold alerts, review immutable system audit trails, and generate statutory blood supply reports.
 
-    DONATIONS {
-        int id PK
-        int donor_id FK
-        int camp_id FK "Nullable"
-        datetime donation_date
-        float systolic_bp
-        float diastolic_bp
-        float pulse_rate
-        string collected_by_staff
-    }
+![Figure 7.2 — Use-case diagram: Blood Bank Staff & Administrator Workflows](diagrams/usecase_staff_admin.png)
 
-    BLOOD_UNITS {
-        int id PK
-        int donation_id FK
-        string barcode_id UK
-        string blood_group
-        string component_type "WHOLE_BLOOD | PRBC | PLATELETS | FFP"
-        int volume_ml
-        date collection_date
-        date expiry_date
-        string storage_rack
-        string status "TESTING | AVAILABLE | RESERVED | EXPIRED | DISPATCHED | DISCARDED"
-    }
-
-    BLOOD_TESTS {
-        int id PK
-        int blood_unit_id FK
-        string test_name "HIV | HBV | HCV | SYPHILIS | MALARIA"
-        string result "NEGATIVE | POSITIVE | PENDING"
-        datetime tested_at
-        string tested_by
-    }
-
-    BLOOD_REQUESTS {
-        int id PK
-        int hospital_id FK
-        string patient_name
-        string patient_id
-        string blood_group
-        string component_type
-        int units_requested
-        string urgency "ROUTINE | URGENT | CRITICAL"
-        string doctor_name
-        string status "PENDING | APPROVED | REJECTED | FULFILLED"
-        datetime created_at
-    }
-
-    REQUEST_ALLOCATIONS {
-        int id PK
-        int request_id FK
-        int blood_unit_id FK
-        datetime allocated_at
-    }
-
-    BLOOD_CAMPS {
-        int id PK
-        string camp_name
-        string venue
-        date camp_date
-        time start_time
-        time end_time
-        string organizer_contact
-        int created_by FK
-    }
-
-    CAMP_REGISTRATIONS {
-        int id PK
-        int camp_id FK
-        int donor_id FK
-        datetime registered_at
-        string status "REGISTERED | ATTENDED | CANCELLED"
-    }
-```
+*Figure 7.2 — Use-case diagram: Blood Bank Staff & Administrator Workflows*
 
 ---
 
-### 6.6 Sequence Diagram: Donor Registration & Blood Donation
+# 8. Requirements Traceability Matrix (RTM)
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Donor
-    participant WebUI as Web Client (Frontend)
-    participant DonorCtrl as Donor Controller
-    participant LabCtrl as Lab & Inventory Controller
-    participant DB as Relational Database
+Status legend: N = Not Run, P = Pass, A = Accepted / Approved.
 
-    Donor->>WebUI: Navigate to Register / Profile
-    Donor->>WebUI: Submit Vitals (Weight, Hb, Blood Group)
-    WebUI->>DonorCtrl: POST /api/donors/register
-    DonorCtrl->>DB: Query last_donation_date for Donor
-    DB-->>DonorCtrl: Return last_donation_date
-    DonorCtrl->>DonorCtrl: Verify (today - last_donation >= 90 days) & weight >= 45 & Hb >= 12.5
-    alt Criteria Failed (Cooldown < 90 days)
-        DonorCtrl-->>WebUI: HTTP 400: Not eligible (X days remaining)
-        WebUI-->>Donor: Display Ineligibility Badge & Cooldown
-    else Criteria Passed
-        DonorCtrl->>DB: INSERT into DONORS record
-        DB-->>DonorCtrl: Success
-        DonorCtrl-->>WebUI: HTTP 201: Registration & Appointment Confirmed
-        WebUI-->>Donor: Render Digital Donor Card
-
-        Note over Donor,LabCtrl: Physical Blood Donation at Center / Camp
-        actor Staff
-        Staff->>WebUI: Initiate Donation Intake
-        WebUI->>LabCtrl: POST /api/inventory/intake (Donor ID, Bag Barcode, Volume)
-        LabCtrl->>DB: INSERT into DONATIONS & BLOOD_UNITS (status='TESTING')
-        DB-->>LabCtrl: Unit Created
-        Staff->>WebUI: Enter Serology Results (HIV: Neg, HBV: Neg, HCV: Neg, etc.)
-        WebUI->>LabCtrl: POST /api/inventory/tests (Bag ID, Results)
-        LabCtrl->>LabCtrl: Validate all tests == 'NEGATIVE'
-        LabCtrl->>DB: UPDATE BLOOD_UNITS status='AVAILABLE'
-        DB-->>LabCtrl: Stock Updated
-        LabCtrl-->>WebUI: Unit cleared for transfusion
-    end
-```
-
----
-
-### 6.7 Sequence Diagram: Hospital Emergency Requisition & Cross-Match
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Hospital as Hospital Representative
-    participant WebUI as Web Client
-    participant ReqCtrl as Requisition Controller
-    participant Engine as Compatibility & FEFO Engine
-    participant DB as Relational Database
-    actor Staff as Blood Bank Staff
-
-    Hospital->>WebUI: Fill Emergency Requisition (Patient, Blood Group, Component, Urgency)
-    WebUI->>ReqCtrl: POST /api/requests
-    ReqCtrl->>DB: INSERT into BLOOD_REQUESTS (status='PENDING')
-    DB-->>ReqCtrl: Request ID: REQ-1049
-    ReqCtrl-->>WebUI: HTTP 201: Requisition Logged
-
-    Staff->>WebUI: Open Requisition Queue
-    WebUI->>ReqCtrl: GET /api/requests/pending
-    ReqCtrl->>Engine: MatchCompatibleUnits(BloodGroup, Component, Quantity)
-    Engine->>DB: SELECT * FROM BLOOD_UNITS WHERE status='AVAILABLE' AND expiry_date > NOW()
-    DB-->>Engine: List of candidate bags
-    Engine->>Engine: Filter by ABO Compatibility Matrix
-    Engine->>Engine: Sort by FEFO (expiry_date ASC)
-    Engine-->>ReqCtrl: Return Recommended Bag IDs
-    ReqCtrl-->>WebUI: Display Request with FEFO Matching Suggestions
-
-    Staff->>WebUI: Click "Approve & Reserve"
-    WebUI->>ReqCtrl: POST /api/requests/:id/approve
-    ReqCtrl->>DB: BEGIN TRANSACTION
-    ReqCtrl->>DB: UPDATE BLOOD_UNITS SET status='RESERVED' WHERE id IN (...)
-    ReqCtrl->>DB: INSERT into REQUEST_ALLOCATIONS
-    ReqCtrl->>DB: UPDATE BLOOD_REQUESTS SET status='APPROVED'
-    ReqCtrl->>DB: COMMIT TRANSACTION
-    DB-->>ReqCtrl: Transaction Success
-    ReqCtrl-->>WebUI: Approval Confirmed
-
-    Hospital->>Staff: Hospital Courier Arrives for Pickup
-    Staff->>WebUI: Confirm Handover / Dispatch
-    WebUI->>ReqCtrl: POST /api/requests/:id/dispatch
-    ReqCtrl->>DB: UPDATE BLOOD_UNITS SET status='DISPATCHED'
-    ReqCtrl->>DB: UPDATE BLOOD_REQUESTS SET status='FULFILLED'
-    DB-->>ReqCtrl: Updated
-    ReqCtrl-->>WebUI: Dispatch Receipt Generated
-```
-
----
-
-### 6.8 State Transition Diagram: Blood Unit Lifecycle
-
-```mermaid
-stateDiagram-v2
-    [*] --> DONATED: Phlebotomy Collection
-    DONATED --> TESTING: Transferred to Serology Lab
-    
-    state TESTING {
-        [*] --> SCREENING
-        SCREENING --> TESTS_PASSED: HIV, HBV, HCV, Syphilis, Malaria Negative
-        SCREENING --> TESTS_REACTIVE: Any Positive TTI Result
-    }
-
-    TESTS_REACTIVE --> DISCARDED: Incinerated / Biohazard Protocol
-    TESTS_PASSED --> SEPARATED: Component Processing (PRBC / FFP / Platelets)
-    SEPARATED --> AVAILABLE: Barcoded & Stored in Refrigerated Rack
-
-    AVAILABLE --> RESERVED: Matched with Approved Hospital Request
-    AVAILABLE --> EXPIRED: Exceeded Shelf-Life (e.g., >42d for PRBC, >5d for Platelets)
-    
-    RESERVED --> DISPATCHED: Handed over to Hospital Transfusion Team
-    RESERVED --> AVAILABLE: Request Cancelled by Hospital
-    
-    EXPIRED --> DISCARDED: Discard Log Recorded
-    DISPATCHED --> [*]: Transfused to Patient
-    DISCARDED --> [*]: Hazardous Waste Completed
-```
-
----
-
-### 6.9 System Architecture Diagram
-
-```mermaid
-flowchart TD
-    subgraph ClientLayer["Client Layer (Presentation Tier)"]
-        B1["Public Portal<br/>(Guest Search & Camps)"]
-        B2["Donor Dashboard<br/>(Profile, Eligibility, RSVP)"]
-        B3["Hospital Portal<br/>(Requisitions & Tracking)"]
-        B4["Staff / Admin Console<br/>(Inventory, Testing, Approvals)"]
-    end
-
-    subgraph APIGateway["Application & Security Gateway"]
-        AuthMiddleware["JWT / Session Auth & RBAC Guard"]
-        RateLimiter["Rate Limiting & Input Validation"]
-    end
-
-    subgraph ServiceLayer["Business Logic & Service Layer (Node.js / Express)"]
-        AuthService["Auth Service<br/>(bcrypt, roles)"]
-        DonorService["Donor Service<br/>(90d cooldown, vitals)"]
-        InventoryService["Inventory Service<br/>(Component, Expiry Tracker)"]
-        CompatEngine["Cross-Match Engine<br/>(ABO/Rh Matrix, FEFO)"]
-        RequisitionService["Requisition Service<br/>(Allocation, Dispatch)"]
-        CampService["Camp & Alert Service<br/>(Drives, Shortage Feeds)"]
-    end
-
-    subgraph DataAccessLayer["Data Persistence Layer"]
-        ORM["Data Access / Query Controller"]
-        DB[(Relational DB<br/>SQLite3)]
-    end
-
-    ClientLayer -->|"REST API / JSON"| APIGateway
-    APIGateway --> ServiceLayer
-    ServiceLayer --> DataAccessLayer
-    DataAccessLayer --> DB
-```
-
----
-
-## 7. Database Schema & Data Dictionary
-
-### Table 1: `users`
-| Column Name | Data Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | INTEGER | PRIMARY KEY AUTOINCREMENT | Unique system user ID |
-| `email` | VARCHAR(120) | UNIQUE, NOT NULL | Login email address |
-| `password_hash` | VARCHAR(255) | NOT NULL | Salted bcrypt hash of user password |
-| `role` | VARCHAR(20) | NOT NULL | `ADMIN`, `STAFF`, `HOSPITAL`, or `DONOR` |
-| `full_name` | VARCHAR(100) | NOT NULL | Name of individual or entity |
-| `phone` | VARCHAR(20) | NOT NULL | Primary contact phone number |
-| `created_at` | DATETIME | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
-
-### Table 2: `donors`
-| Column Name | Data Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | INTEGER | PRIMARY KEY AUTOINCREMENT | Unique donor profile ID |
-| `user_id` | INTEGER | FOREIGN KEY (`users.id`) | Linked authentication account |
-| `blood_group` | VARCHAR(5) | NOT NULL | $A^+, A^-, B^+, B^-, AB^+, AB^-, O^+, O^-$ |
-| `date_of_birth` | DATE | NOT NULL | Used to verify age $\ge 18$ years |
-| `gender` | VARCHAR(10) | NOT NULL | `Male`, `Female`, or `Other` |
-| `weight_kg` | DECIMAL(4,1) | NOT NULL | Must be $\ge 45.0\text{ kg}$ |
-| `hemoglobin` | DECIMAL(3,1) | NOT NULL | Must be $\ge 12.5\text{ g/dL}$ |
-| `last_donation_date` | DATE | NULL | Date of previous donation |
-| `medical_history` | TEXT | NULL | Past medical conditions, medications |
-
-### Table 3: `blood_units`
-| Column Name | Data Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | INTEGER | PRIMARY KEY AUTOINCREMENT | Internal unit key |
-| `barcode_id` | VARCHAR(50) | UNIQUE, NOT NULL | Bag barcode string (e.g. `BLD-2026-001`) |
-| `blood_group` | VARCHAR(5) | NOT NULL | ABO/Rh group |
-| `component_type` | VARCHAR(30) | NOT NULL | `WHOLE_BLOOD`, `PRBC`, `PLATELETS`, `FFP` |
-| `volume_ml` | INTEGER | NOT NULL | Volume in milliliters (typically 350 or 450) |
-| `collection_date` | DATE | NOT NULL | Date unit was collected |
-| `expiry_date` | DATE | NOT NULL | Computed date of expiration |
-| `storage_rack` | VARCHAR(30) | NOT NULL | Physical storage rack/shelf ID |
-| `status` | VARCHAR(20) | NOT NULL | `TESTING`, `AVAILABLE`, `RESERVED`, `EXPIRED`, `DISPATCHED`, `DISCARDED` |
-| `donor_id` | INTEGER | FOREIGN KEY (`donors.id`) | Originating donor |
-
-### Table 4: `blood_tests`
-| Column Name | Data Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | INTEGER | PRIMARY KEY AUTOINCREMENT | Test record key |
-| `blood_unit_id` | INTEGER | FOREIGN KEY (`blood_units.id`) | Tested unit |
-| `hiv` | VARCHAR(15) | NOT NULL | `NEGATIVE`, `POSITIVE`, `PENDING` |
-| `hbv` | VARCHAR(15) | NOT NULL | Hepatitis B surface antigen |
-| `hcv` | VARCHAR(15) | NOT NULL | Hepatitis C antibody |
-| `syphilis` | VARCHAR(15) | NOT NULL | VDRL test |
-| `malaria` | VARCHAR(15) | NOT NULL | Smear / antigen test |
-| `technician_name`| VARCHAR(80) | NOT NULL | Staff who performed and certified tests |
-| `tested_at` | DATETIME | DEFAULT CURRENT_TIMESTAMP | Verification timestamp |
-
-### Table 5: `blood_requests`
-| Column Name | Data Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | INTEGER | PRIMARY KEY AUTOINCREMENT | Requisition ID |
-| `hospital_name` | VARCHAR(100) | NOT NULL | Name of requesting hospital |
-| `patient_name` | VARCHAR(100) | NOT NULL | Intended transfusion recipient |
-| `blood_group` | VARCHAR(5) | NOT NULL | Recipient blood group |
-| `component_type` | VARCHAR(30) | NOT NULL | Component required |
-| `units_requested`| INTEGER | NOT NULL | Number of bags required |
-| `urgency` | VARCHAR(15) | NOT NULL | `ROUTINE`, `URGENT`, `CRITICAL` |
-| `doctor_name` | VARCHAR(100) | NOT NULL | Attending physician |
-| `status` | VARCHAR(20) | NOT NULL | `PENDING`, `APPROVED`, `REJECTED`, `FULFILLED` |
-| `created_at` | DATETIME | DEFAULT CURRENT_TIMESTAMP | Submission timestamp |
-
-### Table 6: `blood_camps`
-| Column Name | Data Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | INTEGER | PRIMARY KEY AUTOINCREMENT | Camp ID |
-| `camp_name` | VARCHAR(100) | NOT NULL | Name/Theme of donation camp |
-| `venue` | VARCHAR(150) | NOT NULL | Location address / campus |
-| `camp_date` | DATE | NOT NULL | Date of drive |
-| `start_time` | VARCHAR(10) | NOT NULL | e.g. "09:00 AM" |
-| `end_time` | VARCHAR(10) | NOT NULL | e.g. "05:00 PM" |
-| `organizer_name`| VARCHAR(100) | NOT NULL | Hosting organization (e.g. PESU Rotaract) |
-| `organizer_phone`| VARCHAR(20) | NOT NULL | Contact helpline |
-
----
-
-## 8. ABO / Rh Compatibility Matrix Reference
-For reference in automated matching and clinical verification:
-
-| Recipient Group | Whole Blood / PRBC Compatible Donor Groups | FFP (Plasma) Compatible Donor Groups |
-| :--- | :--- | :--- |
-| **$O^-$** | $O^-$ | $O^-, O^+, A^-, A^+, B^-, B^+, AB^-, AB^+$ (All) |
-| **$O^+$** | $O^-, O^+$ | $O^+, A^+, B^+, AB^+$ |
-| **$A^-$** | $O^-, A^-$ | $A^-, A^+, AB^-, AB^+$ |
-| **$A^+$** | $O^-, O^+, A^-, A^+$ | $A^+, AB^+$ |
-| **$B^-$** | $O^-, B^-$ | $B^-, B^+, AB^-, AB^+$ |
-| **$B driver** | $O^-, O^+, B^-, B^+$ | $B^+, AB^+$ |
-| **$AB^-$** | $O^-, A^-, B^-, AB^-$ | $AB^-, AB^+$ |
-| **$AB^+$** | **Universal Recipient** (All groups) | **$AB^+$ only** |
-
-*(Universal Red Cell Donor: $O^-$; Universal Plasma Donor: $AB^+$ / $AB^-$)*.
-
----
-
-**End of Software Requirements Specification**  
-Department of Computer Science & Engineering, PES University  
-Team T9 (Sl. No. 9) — Blood Bank Management System  
-- Uttam (`PES1UG24CS697`)
-- Abhinav K (`PES1UG24CS701`)
-- Akshay Arcot (`PES1UG24CS705`)
-- Navaneeth Tanuboddi (`PES1UG24CS709`)
+| Req ID | Requirement Short Name | Section Ref | Module | Test Case(s) | Status (N/P/A) | Comments |
+| :--- | :--- | :--- | :--- | :--- | :---: | :--- |
+| **BBMS-F-001** | User authentication | 4.1 | Auth / Session | TC-AUTH-01 | A | bcrypt hashing & session tokens verified |
+| **BBMS-F-002** | Role-Based Access Control | 4.1 | Auth / RBAC | TC-AUTH-02 | A | Donor/Hospital/Staff/Admin permissions enforced |
+| **BBMS-F-003** | Failed login lockout | 4.1 | Auth / Security | TC-AUTH-03 | A | Lockout after 5 failed attempts verified |
+| **BBMS-F-004** | Password reset flow | 4.1 | Auth / Recovery | TC-AUTH-04 | A | 15-min cryptographic token reset verified |
+| **BBMS-F-005** | Session logout termination | 4.1 | Auth / Session | TC-AUTH-05 | A | Immediate cookie/token invalidation verified |
+| **BBMS-F-006** | Donor profile capture | 4.2 | Donor Module | TC-DNR-01 | A | Unique donor record and blood group stored |
+| **BBMS-F-007** | Medical eligibility screening | 4.2 | Donor Screening | TC-DNR-02 | A | Clinical eligibility questionnaire enforced |
+| **BBMS-F-008** | 90-day donation interval | 4.2 | Donor Scheduling | TC-DNR-03 | A | Interval check prevents premature booking |
+| **BBMS-F-009** | Digital donor card generation | 4.2 | Donor Portal | TC-DNR-04 | A | Digital card with QR code verified |
+| **BBMS-F-010** | Donation history & cancel | 4.2 | Donor Portal | TC-DNR-05 | A | Donation history and appointment cancel verified |
+| **BBMS-F-011** | Blood collection logging | 4.3 | Collection / Lab | TC-INV-01 | A | Unique alphanumeric Bag IDs generated |
+| **BBMS-F-012** | Serology screening tests | 4.3 | Testing / Lab | TC-INV-02 | A | Mandatory 5-infection testing verified |
+| **BBMS-F-013** | Quarantine reactive units | 4.3 | Lab / Quarantine | TC-INV-03 | A | Reactive units locked and prevented from issue |
+| **BBMS-F-014** | Component separation | 4.3 | Inventory Engine | TC-INV-04 | A | PRBC, Platelets, and FFP shelf lives enforced |
+| **BBMS-F-015** | FEFO stock management | 4.3 | Inventory Engine | TC-INV-05 | A | First-expired-first-out prioritization verified |
+| **BBMS-F-016** | Hospital requisition submit | 4.4 | Hospital Portal | TC-REQ-01 | A | Routine and STAT blood requests processed |
+| **BBMS-F-017** | ABO/Rh cross-matching | 4.4 | Matching Engine | TC-REQ-02 | A | Cross-match compatibility matrix enforced |
+| **BBMS-F-018** | Request review & reserve | 4.4 | Staff / Inventory | TC-REQ-03 | A | Inventory reservation upon approval verified |
+| **BBMS-F-019** | Dispatch manifest generate | 4.4 | Dispatch Module | TC-REQ-04 | A | Printable handover manifest generated |
+| **BBMS-F-020** | Delivery confirmation | 4.4 | Dispatch / Custody | TC-REQ-05 | A | Hospital receipt confirmation updates ledger |
+| **BBMS-F-021** | Immutable audit trail | 4.5 | Audit / Security | TC-AUD-01 | A | Append-only audit logs for all transactions |
+| **BBMS-F-022** | Analytics dashboard | 4.5 | Admin / UI | TC-AUD-02 | A | Real-time charts and KPI metrics verified |
+| **BBMS-F-023** | CSV / PDF report export | 4.5 | Reporting Module | TC-AUD-03 | A | Regulatory compliance reports exported |
+| **BBMS-F-024** | Public availability portal | 4.5 | Public Portal | TC-AUD-04 | A | Live stock counts visible without login |
+| **BBMS-F-025** | Database backup & integrity | 4.5 | Database / Storage | TC-AUD-05 | A | SQLite WAL integrity check passes |
+| **BBMS-NF-001** | API response performance | 5.0 | API / Server | TC-NF-PERF-01 | A | p95 latency < 250 ms verified |
+| **BBMS-NF-002** | System availability & uptime | 5.0 | Core Architecture | TC-NF-REL-01 | A | Zero crashes in continuous stress tests |
+| **BBMS-NF-003** | UI responsiveness & WCAG | 5.0 | Frontend UI | TC-NF-UX-01 | A | Mobile responsive; WCAG AA compliant |
+| **BBMS-NF-004** | Cross-platform portability | 5.0 | Platform Runtime | TC-NF-PORT-01 | A | Operates on macOS, Linux, and Windows |
+| **BBMS-NF-005** | Modular architectural design | 5.0 | Codebase / Clean Arch | TC-NF-MNT-01 | A | Layered architecture; zero lint errors |
+| **BBMS-SR-001** | Salted bcrypt password hash | 5.1 | Security / Auth | TC-SEC-01 | A | Zero plaintext passwords in storage/logs |
+| **BBMS-SR-002** | Parameterized SQL queries | 5.1 | Security / DB | TC-SEC-02 | A | Prepared statements prevent SQL injection |
+| **BBMS-SR-003** | HttpOnly & SameSite cookies | 5.1 | Security / Session | TC-SEC-03 | A | Cookie flags protect against XSS hijacking |
+| **BBMS-SR-004** | RBAC route authorization | 5.1 | Security / Middleware | TC-SEC-04 | A | Strict route access checks prevent escalation |
+| **BBMS-SR-005** | Input validation & sanitization | 5.1 | Security / Input | TC-SEC-05 | A | Strict schema validation on all endpoints |
+| **BBMS-SR-006** | Rate limiting & brute force defense | 5.1 | Security / Network | TC-SEC-06 | A | HTTP 429 triggered on rapid attempts |
