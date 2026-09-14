@@ -53,7 +53,9 @@
 
 > You can access the live, fully functional application immediately without any setup:
 > - 🌐 **Live Web Application**: [https://rendered-undo-bee-plot.trycloudflare.com](https://rendered-undo-bee-plot.trycloudflare.com)
-> - 📄 **Live IEEE 830 SRS Document (PDF/Print)**: [https://rendered-undo-bee-plot.trycloudflare.com/docs/SRS_Report.html](https://rendered-undo-bee-plot.trycloudflare.com/docs/SRS_Report.html)
+> - 📄 **Live SRS Document (HTML Interactive Report)**: [https://rendered-undo-bee-plot.trycloudflare.com/docs/SRS_Report.html](https://rendered-undo-bee-plot.trycloudflare.com/docs/SRS_Report.html)
+> - 📥 **Download SRS Word Document (.docx)**: [https://rendered-undo-bee-plot.trycloudflare.com/docs/SRS_Blood_Bank_Management_System.docx](https://rendered-undo-bee-plot.trycloudflare.com/docs/SRS_Blood_Bank_Management_System.docx)
+> - 📕 **Download SRS PDF Report**: [https://rendered-undo-bee-plot.trycloudflare.com/docs/SRS_Blood_Bank_Management_System.pdf](https://rendered-undo-bee-plot.trycloudflare.com/docs/SRS_Blood_Bank_Management_System.pdf)
 
 ---
 
